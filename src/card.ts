@@ -414,6 +414,13 @@ export class NetworkSpeedMonitor extends LitElement {
   // Rendering
   // ---------------------------------------------------------------------
 
+  private _defaultSubtitle(): string {
+    const show = this._configOrDefault.show ?? "both";
+    if (show === "download") return `Top ${this._limit} devices by download speed`;
+    if (show === "upload") return `Top ${this._limit} devices by upload speed`;
+    return `Top ${this._limit} devices by download and upload speed`;
+  }
+
   private _wrapClass(): string {
     return `wrap ${this._compact ? "compact" : ""} ${this._isDark ? "dark" : "light"}`;
   }
@@ -585,9 +592,7 @@ export class NetworkSpeedMonitor extends LitElement {
   private _renderHeader(): TemplateResult {
     const config = this._configOrDefault;
     const title = config.title ?? "Network Speed Monitor";
-    const subtitle =
-      config.subtitle ??
-      `Top ${this._limit} devices by download and upload speed`;
+    const subtitle = config.subtitle ?? this._defaultSubtitle();
 
     return html`
       <div class="head">

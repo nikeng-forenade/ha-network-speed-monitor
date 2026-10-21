@@ -97,7 +97,7 @@ ignored. The first reading of a counter is always shown as “waiting for the fi
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `title` | string | `Network Speed Monitor` | Card title. |
-| `subtitle` | string | `Top {n} devices by download and upload speed` | Card subtitle. |
+| `subtitle` | string | `Top {n} devices by download/upload speed` | Card subtitle (adapted to `show`). |
 | `show` | `both` \| `download` \| `upload` | `both` | Which rankings to render. |
 | `layout` | `auto` \| `columns` \| `stacked` | `auto` | `auto`/`columns` are side by side on desktop and stack on mobile; `stacked` always stacks. |
 | `ranking_size` | `5` \| `10` \| `15` \| `20` | `10` | Rows per ranking. |
@@ -186,6 +186,9 @@ card needs two samples. This is expected for the first update interval after a p
 hour; the option is off by default.
 
 **The card is huge.** Set `ranking_size: 5`, `compact: true` and/or `show_timestamps: false`.
+
+**The gear → “Edit card…” does nothing.** That shortcut needs Home Assistant's card dialogs; use
+dashboard edit mode (⋮ → Edit dashboard → pencil on the card) instead — the same visual editor opens.
 
 ## License
 
