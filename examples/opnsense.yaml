@@ -1,0 +1,24 @@
+# OPNsense (or any router/firewall integration) with WAN and VPN interfaces.
+#
+# Interface sensors describe the whole network, not a single device, so they
+# are shown in their own strip by default. Set `aggregates: inline` to rank
+# them together with the devices, or `off` to hide them.
+type: custom:network-speed-monitor
+title: Network Speed Monitor
+subtitle: Top 10 devices, WAN and VPN
+aggregates: separate
+ranking_size: 10
+refresh_interval: 5
+include_integrations:
+  - opnsense
+  - unifi
+  - snmp
+pairs:
+  - name: WAN
+    download: sensor.opnsense_wan_in
+    upload: sensor.opnsense_wan_out
+    icon: mdi:earth
+  - name: NordVPN
+    download: sensor.opnsense_nordvpn_in
+    upload: sensor.opnsense_nordvpn_out
+    icon: mdi:vpn

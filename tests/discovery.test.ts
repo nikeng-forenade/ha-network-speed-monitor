@@ -27,6 +27,74 @@ describe("cleanName", () => {
   });
 });
 
+describe("OPNsense style interface sensors", () => {
+  const hass = makeHass(
+    {
+      "sensor.opnsense_wan_in": {
+        state: "31",
+        attributes: { unit_of_measurement: "kB/s", friendly_name: "WAN in" },
+      },
+      "sensor.opnsense_wan_out": {
+        state: "19",
+        attributes: { unit_of_measurement: "kB/s", friendly_name: "WAN out" },
+      },
+      "sensor.opnsense_nordvpn_in": {
+        state: "0",
+        attributes: { unit_of_measurement: "kB/s", friendly_name: "NordVPN in" },
+      },
+      "sensor.opnsense_nordvpn_out": {
+        state: "4",
+        attributes: { unit_of_measurement: "kB/s", friendly_name: "NordVPN out" },
+      },
+      "sensor.opnsense_dhcp_leases": {
+        state: "115",
+        attributes: { unit_of_measurement: "leases", friendly_name: "DHCP leases" },
+      },
+      "sensor.opnsense_cpu": {
+        state: "52",
+        attributes: { unit_of_measurement: "%", friendly_name: "CPU usage" },
+      },
+    },
+    {
+      "sensor.opnsense_wan_in": { platform: "opnsense", device_id: "fw" },
+      "sensor.opnsense_wan_out": { platform: "opnsense", device_id: "fw" },
+      "sensor.opnsense_nordvpn_in": { platform: "opnsense", device_id: "fw" },
+      "sensor.opnsense_nordvpn_out": { platform: "opnsense", device_id: "fw" },
+      "sensor.opnsense_dhcp_leases": { platform: "opnsense", device_id: "fw" },
+      "sensor.opnsense_cpu": { platform: "opnsense", device_id: "fw" },
+    }
+  );
+
+  it("reads byte-rate interface sensors in both directions", () => {
+    const sources = buildSources(hass, baseConfig);
+    const wanIn = sources.find((source) => source.entityId === "sensor.opnsense_wan_in");
+    const wanOut = sources.find((source) => source.entityId === "sensor.opnsense_wan_out");
+
+    expect(wanIn?.direction).toBe("download");
+    expect(wanOut?.direction).toBe("upload");
+    expect(wanIn?.kind).toBe("rate");
+    // kB/s -> 1000 bytes * 8 / 1e6
+    expect(wanIn?.factor).toBeCloseTo(0.008);
+  });
+
+  it("marks interface sensors as aggregates and labels them", () => {
+    const sources = buildSources(hass, baseConfig);
+    const wanIn = sources.find((source) => source.entityId === "sensor.opnsense_wan_in");
+    const vpnOut = sources.find((source) => source.entityId === "sensor.opnsense_nordvpn_out");
+
+    expect(wanIn?.aggregate).toBe(true);
+    expect(wanIn?.label).toBe("WAN");
+    expect(vpnOut?.aggregate).toBe(true);
+    expect(vpnOut?.label).toBe("NordVPN");
+  });
+
+  it("ignores non bandwidth sensors from the same device", () => {
+    const ids = buildSources(hass, baseConfig).map((source) => source.entityId);
+    expect(ids).not.toContain("sensor.opnsense_dhcp_leases");
+    expect(ids).not.toContain("sensor.opnsense_cpu");
+  });
+});
+
 describe("buildSources", () => {
   const hass = makeHass(
     {

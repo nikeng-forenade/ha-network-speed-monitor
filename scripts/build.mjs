@@ -1,5 +1,5 @@
 import { build, context } from "esbuild";
-import { readFile, mkdir } from "node:fs/promises";
+import { readFile, mkdir, copyFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -34,4 +34,9 @@ if (watch) {
   await ctx.watch();
 } else {
   await build(options);
+  // HACS installs the file from the repository root (`content_in_root: true`).
+  await copyFile(
+    join(root, "dist/network-speed-monitor.js"),
+    join(root, "network-speed-monitor.js")
+  );
 }

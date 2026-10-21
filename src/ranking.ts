@@ -17,6 +17,10 @@ export interface Reading {
   entityIds: string[];
   isCounter: boolean;
   unit: string;
+  /** Interface/aggregate sensor (WAN, LAN, VPN tunnel, ...). */
+  aggregate: boolean;
+  /** Group label for aggregates. */
+  label: string;
 }
 
 export interface EvaluateOptions {
@@ -61,6 +65,8 @@ export function evaluateSources(
       entityIds: [source.entityId],
       isCounter: source.kind === "counter",
       unit: source.unit,
+      aggregate: source.aggregate,
+      label: source.label,
     };
 
     if (!state) {
@@ -135,6 +141,38 @@ export interface RankResult {
   total: number;
   scale: number;
   candidates: number;
+}
+
+export interface AggregateGroup {
+  label: string;
+  icon?: string;
+  download?: Reading;
+  upload?: Reading;
+}
+
+/**
+ * Pair interface level readings into WAN/VPN rows. Overlapping sensors for the
+ * same interface keep the highest reading instead of summing them.
+ */
+export function groupAggregates(readings: Reading[]): AggregateGroup[] {
+  const groups = new Map<string, AggregateGroup>();
+  for (const reading of readings) {
+    if (!reading.aggregate) continue;
+    const label = reading.label || reading.name;
+    const key = label.toLowerCase();
+    const group = groups.get(key) ?? { label };
+    if (reading.direction === "download") {
+      if ((reading.mbps ?? -1) > (group.download?.mbps ?? -1)) group.download = reading;
+    } else if ((reading.mbps ?? -1) > (group.upload?.mbps ?? -1)) {
+      group.upload = reading;
+    }
+    if (!group.icon) group.icon = reading.icon;
+    groups.set(key, group);
+  }
+  return [...groups.values()].sort(
+    (a, b) =>
+      (b.download?.mbps ?? b.upload?.mbps ?? 0) - (a.download?.mbps ?? a.upload?.mbps ?? 0)
+  );
 }
 
 interface GroupedReading {

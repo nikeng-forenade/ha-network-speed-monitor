@@ -30,6 +30,7 @@ export const DEFAULT_CONFIG = {
   compact: false,
   sort_direction: "desc" as const,
   scope: "entity" as const,
+  aggregates: "separate" as const,
   stale_after: 300,
   warn_threshold: 75,
   critical_threshold: 90,

@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { CounterRateTracker } from "../src/counter";
 import { buildSources } from "../src/discovery";
-import { evaluateSources, rankReadings, type Reading } from "../src/ranking";
+import { evaluateSources, groupAggregates, rankReadings, type Reading } from "../src/ranking";
 import { makeHass } from "./helpers";
 
 function reading(
   name: string,
   mbps: number | null,
   direction: "download" | "upload" = "download",
-  deviceId?: string
+  deviceId?: string,
+  aggregate = false,
+  label = name
 ): Reading {
   const entityId = `sensor.${name.toLowerCase().replace(/\s+/g, "_")}`;
   return {
@@ -23,6 +25,8 @@ function reading(
     entityIds: [entityId],
     isCounter: false,
     unit: "Mbit/s",
+    aggregate,
+    label,
   };
 }
 
@@ -90,6 +94,36 @@ describe("rankReadings", () => {
     });
     expect(result.rows).toHaveLength(0);
     expect(result.total).toBe(0);
+  });
+});
+
+describe("groupAggregates", () => {
+  it("pairs download and upload per interface", () => {
+    const groups = groupAggregates([
+      reading("WAN", 412, "download", "fw", true, "WAN"),
+      reading("WAN", 33, "upload", "fw", true, "WAN"),
+      reading("NordVPN", 120, "download", "fw", true, "NordVPN"),
+      reading("NordVPN", 12, "upload", "fw", true, "NordVPN"),
+      reading("Desktop-PC", 845, "download", "dev_pc", false, "Desktop-PC"),
+    ]);
+
+    expect(groups.map((group) => group.label)).toEqual(["WAN", "NordVPN"]);
+    expect(groups[0].download?.mbps).toBe(412);
+    expect(groups[0].upload?.mbps).toBe(33);
+    expect(groups[1].upload?.mbps).toBe(12);
+  });
+
+  it("keeps the highest reading when an interface has several sensors", () => {
+    const groups = groupAggregates([
+      reading("WAN", 100, "download", "fw", true, "WAN"),
+      reading("WAN", 250, "download", "fw", true, "WAN"),
+    ]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].download?.mbps).toBe(250);
+  });
+
+  it("returns nothing when there are no interface sensors", () => {
+    expect(groupAggregates([reading("Laptop", 92)])).toEqual([]);
   });
 });
 

@@ -14,7 +14,9 @@ import { buildSources, type SourceConfig } from "./discovery";
 import { fetchSparklines } from "./history";
 import {
   evaluateSources,
+  groupAggregates,
   rankReadings,
+  type AggregateGroup,
   type RankedRow,
   type RankResult,
   type RankOptions,
@@ -33,12 +35,17 @@ import { formatRate } from "./units";
 interface ViewState {
   download: RankResult;
   upload: RankResult;
+  aggregates: AggregateGroup[];
   generatedAt: number;
   sourceCount: number;
   activeCount: number;
 }
 
 const ICON_RULES: Array<[RegExp, string]> = [
+  [/(nordvpn|\bvpn\b|wireguard|openvpn|ipsec|tunnel|\btun\d*\b|\bwg\d*\b)/i, "mdi:vpn"],
+  [/(\bwan\b|internet|uplink|broadband)/i, "mdi:earth"],
+  [/(wlan|wi-?fi|guest)/i, "mdi:wifi"],
+  [/(\blan\b|bridge)/i, "mdi:lan"],
   [/(iphone|phone|mobile|pixel|galaxy|android)/i, "mdi:cellphone"],
   [/(ipad|tablet)/i, "mdi:tablet"],
   [/(television|apple ?tv|chromecast|roku|\btv\b)/i, "mdi:television"],
@@ -268,18 +275,22 @@ export class NetworkSpeedMonitor extends LitElement {
     };
 
     const scope = config.scope ?? DEFAULT_CONFIG.scope;
+    const aggregateMode = config.aggregates ?? DEFAULT_CONFIG.aggregates;
+    const ranked =
+      aggregateMode === "inline" ? readings : readings.filter((reading) => !reading.aggregate);
 
     this._view = {
       download: rankReadings(
-        readings.filter((reading) => reading.direction === "download"),
+        ranked.filter((reading) => reading.direction === "download"),
         scope,
         options
       ),
       upload: rankReadings(
-        readings.filter((reading) => reading.direction === "upload"),
+        ranked.filter((reading) => reading.direction === "upload"),
         scope,
         options
       ),
+      aggregates: aggregateMode === "off" ? [] : groupAggregates(readings),
       generatedAt: now,
       sourceCount: readings.length,
       activeCount: readings.filter((reading) => reading.mbps !== null).length,
@@ -439,10 +450,10 @@ export class NetworkSpeedMonitor extends LitElement {
   private _columns(): string {
     const config = this._configOrDefault;
     const parts: string[] = [];
-    if (config.show_rank !== false) parts.push("1.3rem");
-    if (config.show_icons !== false) parts.push("1.25rem");
-    parts.push("minmax(0, 1fr)");
-    if (config.show_bars !== false) parts.push("minmax(2rem, 1.5fr)");
+    if (config.show_rank !== false) parts.push("1.5rem");
+    if (config.show_icons !== false) parts.push("1.5rem");
+    parts.push("minmax(0, 1.25fr)");
+    if (config.show_bars !== false) parts.push("minmax(2.5rem, 1.15fr)");
     parts.push("auto");
     if (config.show_timestamps !== false) parts.push("3.4rem");
     return parts.join(" ");
@@ -505,6 +516,50 @@ export class NetworkSpeedMonitor extends LitElement {
           : nothing}
       </li>
     `;
+  }
+
+  private _renderAggregate(group: AggregateGroup): TemplateResult {
+    const config = this._configOrDefault;
+    const unit = this._unit;
+    const decimals = config.decimals ?? 0;
+    const ages = [group.download?.ageMs, group.upload?.ageMs].filter(
+      (age): age is number => age !== null && age !== undefined
+    );
+    const age = ages.length ? Math.min(...ages) : null;
+
+    return html`
+      <div class="iface">
+        <div class="iface-head">
+          <ha-icon .icon=${group.icon ?? guessIcon(group.label)}></ha-icon>
+          <span class="iface-name">${group.label}</span>
+          ${config.show_timestamps !== false
+            ? html`<span class="iface-age">${formatAge(age)}</span>`
+            : nothing}
+        </div>
+        <div class="iface-values">
+          ${group.download?.mbps !== null && group.download?.mbps !== undefined
+            ? html`<span class="iface-value download">
+                <ha-icon icon="mdi:arrow-down-bold"></ha-icon>
+                ${formatRate(group.download.mbps, unit, decimals)}<span class="u">${unit}</span>
+              </span>`
+            : nothing}
+          ${group.upload?.mbps !== null && group.upload?.mbps !== undefined
+            ? html`<span class="iface-value upload">
+                <ha-icon icon="mdi:arrow-up-bold"></ha-icon>
+                ${formatRate(group.upload.mbps, unit, decimals)}<span class="u">${unit}</span>
+              </span>`
+            : nothing}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderAggregates(): TemplateResult | typeof nothing {
+    const config = this._configOrDefault;
+    if (config.aggregates === "off" || config.aggregates === "inline") return nothing;
+    const groups = this._view?.aggregates ?? [];
+    if (groups.length === 0) return nothing;
+    return html`<div class="interfaces">${groups.map((group) => this._renderAggregate(group))}</div>`;
   }
 
   private _renderPanel(direction: Direction, result: RankResult): TemplateResult {
@@ -709,6 +764,7 @@ export class NetworkSpeedMonitor extends LitElement {
             ${showDownload ? this._renderPanel("download", view?.download ?? emptyResult()) : nothing}
             ${showUpload ? this._renderPanel("upload", view?.upload ?? emptyResult()) : nothing}
           </div>
+          ${this._renderAggregates()}
           ${config.show_totals !== false
             ? this._renderTotals(downloadTotal, uploadTotal, downloadRows.length, uploadRows.length)
             : nothing}
@@ -747,7 +803,6 @@ export class NetworkSpeedMonitor extends LitElement {
 function emptyResult(): RankResult {
   return { rows: [], total: 0, scale: 1, candidates: 0 };
 }
-
 export const CARD_INFO = {
   type: `custom:${CARD_TAG}`,
   name: "Network Speed Monitor",

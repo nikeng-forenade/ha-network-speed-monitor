@@ -23,5 +23,5 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      - name: Ensure dist/ is committed
-        run: git diff --exit-code -- dist
+      - name: Ensure build output is committed
+        run: git diff --exit-code -- dist network-speed-monitor.js

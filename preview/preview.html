@@ -109,6 +109,29 @@
       const dark = new URLSearchParams(location.search).has("dark");
       document.body.classList.toggle("dark", dark);
 
+      // OPNsense style interface sensors (byte rates in kB/s).
+      devices.dev_fw = { id: "dev_fw", name: "Firewall" };
+      for (const [name, value] of [
+        ["wan_in", 42000],
+        ["wan_out", 4100],
+        ["nordvpn_in", 15000],
+        ["nordvpn_out", 1500],
+      ]) {
+        const entityId = `sensor.opnsense_${name}`;
+        const [iface, direction] = name.split("_");
+        states[entityId] = {
+          entity_id: entityId,
+          state: String(value),
+          attributes: {
+            unit_of_measurement: "kB/s",
+            friendly_name: `${iface === "wan" ? "WAN" : "NordVPN"} ${direction}`,
+          },
+          last_changed: new Date(now - 3000).toISOString(),
+          last_updated: new Date(now - 3000).toISOString(),
+        };
+        entities[entityId] = { entity_id: entityId, platform: "opnsense", device_id: "dev_fw" };
+      }
+
       const hass = {
         states,
         entities,

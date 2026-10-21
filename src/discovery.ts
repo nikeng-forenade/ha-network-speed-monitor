@@ -19,18 +19,34 @@ export interface SourceConfig {
   icon?: string;
   entityCategory?: string;
   manual: boolean;
+  /** True for interface/aggregate sensors (WAN, LAN, VPN tunnel, ...). */
+  aggregate: boolean;
+  /** Group label used for aggregates, e.g. `WAN` or `NordVPN`. */
+  label: string;
+  /** Detection confidence, used for debugging and the editor preview. */
+  confidence: number;
 }
 
 const DOWNLOAD_PATTERN =
-  /\b(download|downloads|down|dl|rx|receive[ds]?|receiving|inbound|ingress|nedladdning|herunterladen|descarga)\b/i;
+  /\b(download|downloads|down|dl|rx|recv|receive[ds]?|receiving|inbound|ingress|in|nedladdning|herunterladen|descarga)\b/i;
 const UPLOAD_PATTERN =
-  /\b(upload|uploads|up|ul|tx|transmit(ted|ting)?|outbound|egress|uppladdning|hochladen|subida)\b/i;
+  /\b(upload|uploads|up|ul|tx|send|sent|transmit(ted|ting)?|outbound|egress|out|uppladdning|hochladen|subida)\b/i;
 
 const RATE_HINT = /speed|rate|bandwidth|download|upload|throughput|traffic|mbps|kbps|gbps/i;
 
+/** Throughput that is definitely not network traffic. */
+const NON_NETWORK = /\b(disk|storage|hdd|ssd|drive|memory|ram|swap|cpu|gpu|fan|temperature)\b/i;
+
+/**
+ * Interface level sources. Their traffic is the sum of many devices, so they
+ * are kept out of the per-device ranking by default.
+ */
+const AGGREGATE_HINT =
+  /\b(wan|wan6|lan|wlan|guest|vpn|nordvpn|wireguard|openvpn|ipsec|tun\d*|wg\d*|pppoe|interface|iface|opt\d+|bridge|uplink|internet)\b/i;
+
 /** Words that are noise once the reading is displayed as a ranked device row. */
 const NOISE =
-  /\b(download|downloads|upload|uploads|down|up|dl|ul|rx|tx|receive[ds]?|transmit(ted|ting)?|inbound|outbound|ingress|egress|speed|rate|throughput|bandwidth|traffic|total|current|now|utilization|utilisation)\b/gi;
+  /\b(download|downloads|upload|uploads|down|up|dl|ul|rx|tx|in|out|receive[ds]?|sent|transmit(ted|ting)?|inbound|outbound|ingress|egress|speed|rate|throughput|bandwidth|traffic|total|current|now|utilization|utilisation)\b/gi;
 
 export function detectDirection(text: string): Direction | null {
   const normalized = text.replace(/[_.]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2");
@@ -49,6 +65,21 @@ export function cleanName(raw: string): string {
     .replace(/\s{2,}/g, " ")
     .trim();
   return stripped || source;
+}
+
+/**
+ * Label for an interface level source, e.g. `OPNsense WAN In` -> `OPNsense WAN`,
+ * `NordVPN out` -> `NordVPN`.
+ */
+export function aggregateLabel(raw: string): string {
+  const base = cleanName(raw);
+  const stripped = base
+    .replace(/\b(in|out|rx|tx|sent|recv|received|bytes?|kbps|mbps|gbps|bps|per|second|sec)\b/gi, " ")
+    .replace(/[\s|:_–-]{2,}/g, " ")
+    .replace(/^[\s|:_–-]+|[\s|:_–-]+$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return stripped || base;
 }
 
 function textFor(entityId: string, attributes: Record<string, unknown>, extra: string): string {
@@ -123,9 +154,16 @@ export function buildSources(
         deviceClass === "data_size" ||
         /total|traffic|bytes|counter|transferred|usage|volume/i.test(hintText);
       if (!looksLikeCounter) continue;
-    } else if (deviceClass !== "data_rate" && !RATE_HINT.test(hintText)) {
+    } else if (
+      deviceClass !== "data_rate" &&
+      !RATE_HINT.test(hintText) &&
+      !AGGREGATE_HINT.test(hintText)
+    ) {
+      // A rate unit alone is not enough (disk and memory throughput use the
+      // same units), but interface names such as `WAN in` are a clear signal.
       continue;
     }
+    if (deviceClass !== "data_rate" && NON_NETWORK.test(hintText)) continue;
 
     const direction = manual?.direction ?? detectDirection(hintText);
     if (!direction) continue;
@@ -142,6 +180,7 @@ export function buildSources(
       entityId;
 
     const name = manual?.pair.name ?? overrides[entityId] ?? cleanName(String(rawName));
+    const aggregate = AGGREGATE_HINT.test(`${entityId} ${hintText}`);
 
     sources.push({
       entityId,
@@ -159,6 +198,9 @@ export function buildSources(
         undefined,
       entityCategory: entry?.entity_category ?? undefined,
       manual: Boolean(manual),
+      aggregate,
+      label: aggregate ? aggregateLabel(String(rawName)) : name,
+      confidence: aggregate ? 0.6 : manual ? 1 : 0.9,
     });
     seen.add(entityId);
   }

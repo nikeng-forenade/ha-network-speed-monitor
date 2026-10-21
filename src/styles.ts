@@ -49,30 +49,31 @@ export const cardStyles = css`
   .wrap {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
-    padding: 1.05rem 1.15rem 0.9rem;
+    gap: 1rem;
+    padding: 1.2rem 1.3rem 1rem;
   }
 
   .head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: 0.85rem;
     flex-wrap: wrap;
+    margin-bottom: 0.1rem;
   }
 
   .brand {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.9rem;
     min-width: 0;
   }
 
   .logo {
-    width: 2.55rem;
-    height: 2.55rem;
+    width: 2.95rem;
+    height: 2.95rem;
     flex: 0 0 auto;
-    border-radius: 0.8rem;
+    border-radius: 0.85rem;
     display: grid;
     place-items: center;
     color: var(--nsm-fg);
@@ -85,28 +86,28 @@ export const cardStyles = css`
   }
 
   .logo ha-icon {
-    --mdc-icon-size: 1.6rem;
+    --mdc-icon-size: 1.85rem;
   }
 
   .brand h1 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     color: var(--nsm-fg);
-    line-height: 1.2;
+    line-height: 1.15;
   }
 
   .brand p {
-    margin: 0.18rem 0 0;
-    font-size: 0.8rem;
+    margin: 0.28rem 0 0;
+    font-size: 0.86rem;
     color: var(--nsm-muted);
   }
 
   .tools {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
     margin-left: auto;
     flex-wrap: wrap;
   }
@@ -114,14 +115,14 @@ export const cardStyles = css`
   .chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.38rem;
-    height: 2.15rem;
-    padding: 0 0.65rem;
-    border-radius: 0.65rem;
+    gap: 0.45rem;
+    height: 2.45rem;
+    padding: 0 0.8rem;
+    border-radius: 0.75rem;
     border: 1px solid var(--nsm-border);
     background: var(--nsm-surface-2);
     color: var(--nsm-fg);
-    font-size: 0.8rem;
+    font-size: 0.86rem;
     font-family: inherit;
     cursor: pointer;
     transition:
@@ -134,7 +135,7 @@ export const cardStyles = css`
   }
 
   .chip ha-icon {
-    --mdc-icon-size: 1.05rem;
+    --mdc-icon-size: 1.15rem;
     color: var(--nsm-muted);
   }
 
@@ -244,7 +245,7 @@ export const cardStyles = css`
 
   .panels {
     display: grid;
-    gap: 0.85rem;
+    gap: 1rem;
   }
 
   .panels.columns {
@@ -257,10 +258,90 @@ export const cardStyles = css`
     }
   }
 
+  .interfaces {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.6rem;
+  }
+
+  .iface {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--nsm-border);
+    border-radius: 0.75rem;
+    background: var(--nsm-surface);
+  }
+
+  .iface-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .iface-head ha-icon {
+    --mdc-icon-size: 1.05rem;
+    color: var(--nsm-muted);
+  }
+
+  .iface-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--nsm-fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .iface-age {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--nsm-muted);
+    white-space: nowrap;
+  }
+
+  .iface-values {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .iface-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .iface-value ha-icon {
+    --mdc-icon-size: 0.9rem;
+  }
+
+  .iface-value.download {
+    color: rgb(var(--nsm-dl));
+  }
+
+  .iface-value.upload {
+    color: rgb(var(--nsm-ul));
+  }
+
+  .iface-value .u {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--nsm-muted);
+    margin-left: 0.2rem;
+  }
+
   .panel {
     border: 1px solid var(--nsm-border);
-    border-radius: 0.9rem;
-    padding: 0.8rem 0.9rem 0.5rem;
+    border-radius: 1rem;
+    padding: 0.95rem 1.05rem 0.65rem;
     background: var(--nsm-surface);
   }
 
@@ -283,21 +364,21 @@ export const cardStyles = css`
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.55rem;
   }
 
   .panel-title {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.7rem;
     min-width: 0;
   }
 
   .badge {
-    width: 2.1rem;
-    height: 2.1rem;
+    width: 2.45rem;
+    height: 2.45rem;
     flex: 0 0 auto;
-    border-radius: 0.65rem;
+    border-radius: 50%;
     display: grid;
     place-items: center;
     color: #fff;
@@ -314,13 +395,14 @@ export const cardStyles = css`
   }
 
   .badge ha-icon {
-    --mdc-icon-size: 1.4rem;
+    --mdc-icon-size: 1.6rem;
   }
 
   .panel h2 {
     margin: 0;
-    font-size: 1.02rem;
-    font-weight: 650;
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     color: var(--nsm-fg);
     white-space: nowrap;
     overflow: hidden;
@@ -328,7 +410,7 @@ export const cardStyles = css`
   }
 
   .panel .unit {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--nsm-muted);
     flex: 0 0 auto;
   }
@@ -341,34 +423,34 @@ export const cardStyles = css`
 
   .row {
     display: grid;
-    grid-template-columns: var(--nsm-cols, 1.3rem 1.25rem minmax(0, 1fr) minmax(2rem, 1.5fr) auto 3.4rem);
+    grid-template-columns: var(--nsm-cols, 1.5rem 1.5rem minmax(0, 1.25fr) minmax(2.5rem, 1.15fr) auto 3.4rem);
     align-items: center;
     gap: 0.6rem;
-    padding: 0.4rem 0.15rem;
-    border-radius: 0.45rem;
+    padding: 0.5rem 0.2rem;
+    border-radius: 0.5rem;
   }
 
   .rank {
     text-align: center;
-    font-size: 0.8rem;
+    font-size: 0.88rem;
     font-weight: 600;
     color: var(--nsm-muted);
     font-variant-numeric: tabular-nums;
   }
 
   .icon {
-    --mdc-icon-size: 1.05rem;
+    --mdc-icon-size: 1.25rem;
     color: var(--nsm-fg);
-    opacity: 0.82;
+    opacity: 0.85;
     justify-self: center;
   }
 
   .name {
     display: flex;
     align-items: center;
-    gap: 0.38rem;
+    gap: 0.45rem;
     min-width: 0;
-    font-size: 0.88rem;
+    font-size: 0.98rem;
     color: var(--nsm-fg);
   }
 
@@ -385,11 +467,11 @@ export const cardStyles = css`
   }
 
   .track {
-    height: 0.62rem;
+    height: 0.78rem;
     border-radius: 999px;
     background: var(--nsm-track);
     overflow: hidden;
-    min-width: 2rem;
+    min-width: 2.5rem;
   }
 
   .track.history {
@@ -421,22 +503,23 @@ export const cardStyles = css`
   }
 
   .value {
-    font-size: 0.87rem;
-    font-weight: 600;
+    font-size: 0.98rem;
+    font-weight: 700;
     color: var(--nsm-fg);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    justify-self: end;
   }
 
   .value .u {
-    margin-left: 0.16rem;
-    font-size: 0.7rem;
+    margin-left: 0.2rem;
+    font-size: 0.74rem;
     font-weight: 500;
     color: var(--nsm-muted);
   }
 
   .age {
-    font-size: 0.7rem;
+    font-size: 0.74rem;
     color: var(--nsm-muted);
     white-space: nowrap;
     text-align: right;
@@ -475,8 +558,11 @@ export const cardStyles = css`
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
-    border-top: 1px solid var(--nsm-border);
-    padding-top: 0.7rem;
+    align-items: center;
+    border: 1px solid var(--nsm-border);
+    border-radius: 1rem;
+    background: var(--nsm-surface);
+    padding: 0.85rem 0.75rem;
   }
 
   .totals.single {
@@ -487,9 +573,9 @@ export const cardStyles = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.65rem;
+    gap: 0.75rem;
     min-width: 0;
-    padding: 0.15rem 0.4rem;
+    padding: 0.1rem 0.5rem;
   }
 
   .total + .total {
@@ -497,7 +583,7 @@ export const cardStyles = css`
   }
 
   .total .glyph {
-    --mdc-icon-size: 1.45rem;
+    --mdc-icon-size: 1.65rem;
     flex: 0 0 auto;
   }
 
@@ -510,24 +596,24 @@ export const cardStyles = css`
   }
 
   .total .label {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     color: var(--nsm-muted);
-    line-height: 1.25;
+    line-height: 1.3;
   }
 
   .total .amount {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.45rem;
+    font-weight: 700;
     color: var(--nsm-fg);
     line-height: 1.2;
     font-variant-numeric: tabular-nums;
   }
 
   .total .amount .u {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--nsm-muted);
-    margin-left: 0.2rem;
+    margin-left: 0.22rem;
   }
 
   @media (max-width: 640px) {
@@ -543,12 +629,12 @@ export const cardStyles = css`
   }
 
   .wrap.compact {
-    padding: 0.75rem 0.8rem 0.7rem;
-    gap: 0.65rem;
+    padding: 0.9rem 0.95rem 0.8rem;
+    gap: 0.75rem;
   }
 
   .wrap.compact .brand h1 {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
   }
 
   .wrap.compact .brand p {
@@ -556,25 +642,46 @@ export const cardStyles = css`
   }
 
   .wrap.compact .logo {
-    width: 2.1rem;
-    height: 2.1rem;
+    width: 2.45rem;
+    height: 2.45rem;
   }
 
   .wrap.compact .panel {
-    padding: 0.55rem 0.65rem 0.35rem;
+    padding: 0.7rem 0.8rem 0.45rem;
   }
 
   .wrap.compact .row {
-    padding: 0.18rem 0.1rem;
+    padding: 0.28rem 0.1rem;
   }
 
   .wrap.compact .badge {
-    width: 1.7rem;
-    height: 1.7rem;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .wrap.compact .badge ha-icon {
+    --mdc-icon-size: 1.3rem;
   }
 
   .wrap.compact .panel h2 {
-    font-size: 0.92rem;
+    font-size: 1rem;
+  }
+
+  .wrap.compact .name,
+  .wrap.compact .value {
+    font-size: 0.9rem;
+  }
+
+  .wrap.compact .track {
+    height: 0.6rem;
+  }
+
+  .wrap.compact .totals {
+    padding: 0.65rem 0.5rem;
+  }
+
+  .wrap.compact .total .amount {
+    font-size: 1.25rem;
   }
 
   @media (prefers-reduced-motion: reduce) {

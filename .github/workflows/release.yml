@@ -24,9 +24,6 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      - name: Prepare HACS asset
-        run: cp dist/network-speed-monitor.js network-speed-monitor.js
-
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:

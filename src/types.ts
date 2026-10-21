@@ -10,6 +10,14 @@ export type ShowMode = "both" | "download" | "upload";
 
 export type LayoutMode = "auto" | "columns" | "stacked";
 
+/**
+ * How interface-level sensors (WAN, LAN, VPN tunnels, ...) are treated.
+ *
+ * `separate` keeps them out of the device ranking and shows them in their own
+ * strip, `inline` ranks them together with the devices, `off` ignores them.
+ */
+export type AggregateMode = "separate" | "inline" | "off";
+
 export interface ManualPair {
   /** Display name for the pair. Falls back to the sensor / device name. */
   name?: string;
@@ -42,6 +50,7 @@ export interface NetworkSpeedMonitorConfig {
   compact?: boolean;
   sort_direction?: SortDirection;
   scope?: Scope;
+  aggregates?: AggregateMode;
   max_speed?: number;
   warn_threshold?: number;
   critical_threshold?: number;
