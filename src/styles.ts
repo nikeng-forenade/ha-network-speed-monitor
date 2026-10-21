@@ -650,6 +650,34 @@ export const cardStyles = css`
     }
   }
 
+  .debug {
+    font-size: 0.72rem;
+    color: var(--nsm-muted);
+    border: 1px dashed var(--nsm-border);
+    border-radius: 0.6rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .debug summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--nsm-fg);
+  }
+
+  .debug ul {
+    margin: 0.4rem 0 0;
+    padding-left: 1rem;
+    max-height: 12rem;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    line-height: 1.5;
+  }
+
+  .debug strong {
+    font-weight: 600;
+    color: var(--nsm-fg);
+  }
+
   .wrap.compact {
     padding: 0.9rem 0.95rem 0.8rem;
     gap: 0.75rem;

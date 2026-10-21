@@ -488,7 +488,7 @@ export class NetworkSpeedMonitor extends LitElement {
     const spark = config.show_sparkline ? this._spark?.[reading.entityId] : undefined;
     const levelColor =
       row.level === "critical" ? "#ef4444" : row.level === "warn" ? "#f59e0b" : undefined;
-    const tooltip = `${reading.name} · ${value} ${unit} · sensor updated ${formatAgeLong(reading.ageMs)}`;
+    const tooltip = `${reading.name} · ${value} ${unit} · ${reading.entityId} · sensor updated ${formatAgeLong(reading.ageMs)}`;
 
     return html`
       <li
@@ -577,6 +577,26 @@ export class NetworkSpeedMonitor extends LitElement {
       .slice(0, limit);
     if (groups.length === 0) return nothing;
     return html`<div class="interfaces">${groups.map((group) => this._renderAggregate(group))}</div>`;
+  }
+
+  private _renderDebug(): TemplateResult {
+    const sources = this._sources ?? [];
+    const ranked = sources.filter((source) => !source.aggregate);
+    return html`
+      <details class="debug">
+        <summary>${sources.length} sensors discovered · ${ranked.length} ranked</summary>
+        <ul>
+          ${sources.map(
+            (source) => html`<li>
+              <strong>${source.entityId}</strong> · ${source.direction} · ${source.kind} ·
+              ${source.aggregate ? `interface "${source.label}"` : "device"}${source.manual
+                ? " · manual"
+                : ""}
+            </li>`
+          )}
+        </ul>
+      </details>
+    `;
   }
 
   private _renderPanel(direction: Direction, result: RankResult): TemplateResult {
@@ -794,6 +814,7 @@ export class NetworkSpeedMonitor extends LitElement {
             ${showUpload ? this._renderPanel("upload", view?.upload ?? emptyResult()) : nothing}
           </div>
           ${this._renderAggregates()}
+          ${config.debug ? this._renderDebug() : nothing}
           ${config.show_totals !== false
             ? this._renderTotals(downloadTotal, uploadTotal, downloadRows.length, uploadRows.length)
             : nothing}
