@@ -13,7 +13,7 @@
 # samples, so no derivative/template helper is needed.
 
 rest:
-  - resource: "http://192.168.1.1:3000/lua/rest/v2/get/host/active.lua?ifid=7&fields=ip,name,bytes.sent,bytes.rcvd"
+  - resource: "http://192.168.1.1:3000/lua/rest/v2/get/host/custom_data.lua?ifid=7&field_alias=ip,name,bytes.sent,bytes.rcvd"
     authentication: basic
     username: admin
     password: !secret ntopng_password

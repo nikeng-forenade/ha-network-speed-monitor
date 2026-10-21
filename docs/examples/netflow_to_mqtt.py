@@ -67,7 +67,7 @@ def fetch_interfaces(
     session: requests.Session, base_url: str, timeout: float
 ) -> list[dict[str, Any]]:
     """Return ntopng's monitored interfaces so the right `--ifid` can be picked."""
-    url = f"{base_url.rstrip('/')}/lua/rest/v2/get/interface/list.lua"
+    url = f"{base_url.rstrip('/')}/lua/rest/v2/get/ntopng/interfaces.lua"
     response = session.get(url, timeout=timeout)
     response.raise_for_status()
     payload = response.json()
@@ -80,10 +80,10 @@ def fetch_hosts(
     session: requests.Session, base_url: str, ifid: int, timeout: float
 ) -> dict[str, dict[str, Any]]:
     """Return the active hosts of one interface, keyed by IP."""
-    url = f"{base_url.rstrip('/')}/lua/rest/v2/get/host/active.lua"
+    url = f"{base_url.rstrip('/')}/lua/rest/v2/get/host/custom_data.lua"
     response = session.get(
         url,
-        params={"ifid": ifid, "fields": "ip,name,bytes.sent,bytes.rcvd"},
+        params={"ifid": ifid, "field_alias": "ip,name,bytes.sent,bytes.rcvd"},
         timeout=timeout,
     )
     response.raise_for_status()
@@ -169,8 +169,8 @@ def render_ha_yaml(
 ) -> str:
     """Render a copy-paste Home Assistant `rest` block for the given hosts."""
     resource = (
-        f"{base_url.rstrip('/')}/lua/rest/v2/get/host/active.lua"
-        f"?ifid={ifid}&fields=ip,name,bytes.sent,bytes.rcvd"
+        f"{base_url.rstrip('/')}/lua/rest/v2/get/host/custom_data.lua"
+        f"?ifid={ifid}&field_alias=ip,name,bytes.sent,bytes.rcvd"
     )
     lines = [
         "rest:",
@@ -350,11 +350,11 @@ def main(argv: list[str] | None = None) -> int:
         except (requests.RequestException, RuntimeError) as error:
             LOG.error("could not read interfaces: %s", error)
             return 1
-        print(f"{'ifid':>5}  {'name':<14} description")
+        print(f"{'ifid':>5}  {'ifname':<14} name")
         for item in interfaces:
             print(
                 f"{str(item.get('ifid', '')):>5}  "
-                f"{str(item.get('name', '')):<14} {item.get('description', '')}"
+                f"{str(item.get('ifname', '')):<14} {item.get('name', '')}"
             )
         return 0
 

@@ -95,7 +95,7 @@ python netflow_to_mqtt.py --ntopng-url http://opnsense.local:3000 \
 The same via REST:
 
 ```sh
-curl -u admin:admin "http://opnsense.local:3000/lua/rest/v2/get/interface/list.lua"
+curl -u admin:admin "http://opnsense.local:3000/lua/rest/v2/get/ntopng/interfaces.lua"
 ```
 
 Pick the `ifid` of `tun0` / `wg0` / `ovpnc1` (the NordVPN interface).
@@ -209,7 +209,7 @@ helper is needed.
 ```yaml
 # configuration.yaml (or a package)
 rest:
-  - resource: "http://192.168.1.1:3000/lua/rest/v2/get/host/active.lua?ifid=7&fields=ip,name,bytes.sent,bytes.rcvd"
+  - resource: "http://192.168.1.1:3000/lua/rest/v2/get/host/custom_data.lua?ifid=7&field_alias=ip,name,bytes.sent,bytes.rcvd"
     authentication: basic
     username: admin
     password: !secret ntopng_password
