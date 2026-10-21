@@ -126,6 +126,10 @@ aggregates: off
 Full walkthrough, including how to find the interface id and how to avoid double counting:
 [docs/netflow-per-device-vpn.md](docs/netflow-per-device-vpn.md).
 
+Prefer no extra process? A `rest` sensor pair per device inside Home Assistant is enough, because the
+card converts cumulative byte counters to Mbps itself — see
+[`docs/examples/netflow-ha-package.yaml`](docs/examples/netflow-ha-package.yaml).
+
 ### Cumulative counters
 
 Cumulative counters (`B`, `kB`, `MiB`, …) are converted using the timestamps of the actual samples:

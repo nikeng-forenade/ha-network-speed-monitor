@@ -1,0 +1,74 @@
+# Home Assistant package: per-device traffic over NordVPN, no extra process.
+#
+# 1. Copy this file to /config/packages/netflow_vpn.yaml and make sure
+#    `packages: !include_dir_named packages` is enabled in configuration.yaml.
+# 2. Add the ntopng password to secrets.yaml:
+#       ntopng_password: "your-ntopng-password"
+# 3. Replace the ifid (7 below) with the NordVPN interface id
+#    (python netflow_to_mqtt.py --list-interfaces), and the example IPs/names.
+# 4. Restart Home Assistant.
+#
+# The sensors publish cumulative bytes (device_class data_size). The Network
+# Speed Monitor card converts them to Mbps itself, using the timestamps of the
+# samples, so no derivative/template helper is needed.
+
+rest:
+  - resource: "http://192.168.1.1:3000/lua/rest/v2/get/host/active.lua?ifid=7&fields=ip,name,bytes.sent,bytes.rcvd"
+    authentication: basic
+    username: admin
+    password: !secret ntopng_password
+    scan_interval: 10
+    timeout: 10
+    sensor:
+      # ---------------------------------------------------------------- Laptop
+      - name: "Laptop Download Bytes"
+        unique_id: netflow_laptop_download_bytes
+        value_template: >-
+          {{ (value_json.rsp | selectattr('ip', 'equalto', '192.168.1.42')
+              | map(attribute='bytes.rcvd') | first) | default(0, true) }}
+        unit_of_measurement: B
+        device_class: data_size
+        state_class: total_increasing
+
+      - name: "Laptop Upload Bytes"
+        unique_id: netflow_laptop_upload_bytes
+        value_template: >-
+          {{ (value_json.rsp | selectattr('ip', 'equalto', '192.168.1.42')
+              | map(attribute='bytes.sent') | first) | default(0, true) }}
+        unit_of_measurement: B
+        device_class: data_size
+        state_class: total_increasing
+
+      # -------------------------------------------------------------- Apple TV
+      - name: "Apple TV Download Bytes"
+        unique_id: netflow_apple_tv_download_bytes
+        value_template: >-
+          {{ (value_json.rsp | selectattr('ip', 'equalto', '192.168.1.60')
+              | map(attribute='bytes.rcvd') | first) | default(0, true) }}
+        unit_of_measurement: B
+        device_class: data_size
+        state_class: total_increasing
+
+      - name: "Apple TV Upload Bytes"
+        unique_id: netflow_apple_tv_upload_bytes
+        value_template: >-
+          {{ (value_json.rsp | selectattr('ip', 'equalto', '192.168.1.60')
+              | map(attribute='bytes.sent') | first) | default(0, true) }}
+        unit_of_measurement: B
+        device_class: data_size
+        state_class: total_increasing
+
+# ---------------------------------------------------------------------------
+# Card (paste into the dashboard, not here)
+#
+# type: custom:network-speed-monitor
+# title: NordVPN clients
+# subtitle: Per-device through the tunnel
+# include_entities:
+#   - sensor.laptop_download_bytes
+#   - sensor.laptop_upload_bytes
+#   - sensor.apple_tv_download_bytes
+#   - sensor.apple_tv_upload_bytes
+# aggregates: off
+# hold_seconds: 60
+# ---------------------------------------------------------------------------

@@ -47,7 +47,6 @@ soon as the connection closes — which is why the next section exists.
 ---
 
 ## 2. NetFlow + ntopng → MQTT → this card
-
 This gives real per-device rates over the tunnel, and they appear in the card automatically.
 
 ```
@@ -184,6 +183,66 @@ The same bytes are visible twice when you monitor both LAN and the tunnel: once 
 - **Whole-network card** → only the LAN sensors.
 
 Never mix LAN and tunnel sensors in one ranking; the tunnel traffic is a subset of the LAN traffic.
+
+---
+
+## 2b. Everything inside Home Assistant (no extra process)
+
+If you do not want to run a background script, one `rest` sensor pair per device is enough. ntopng
+returns cumulative bytes; **this card converts counters to Mbps itself**, so no derivative or template
+helper is needed.
+
+```yaml
+# configuration.yaml (or a package)
+rest:
+  - resource: "http://192.168.1.1:3000/lua/rest/v2/get/host/active.lua?ifid=7&fields=ip,name,bytes.sent,bytes.rcvd"
+    authentication: basic
+    username: admin
+    password: !secret ntopng_password
+    scan_interval: 10
+    timeout: 10
+    sensor:
+      - name: "Laptop Download Bytes"
+        value_template: >-
+          {{ (value_json.rsp | selectattr('ip', 'equalto', '192.168.1.42')
+              | map(attribute='bytes.rcvd') | first) | default(0, true) }}
+        unit_of_measurement: B
+        device_class: data_size
+        state_class: total_increasing
+
+      - name: "Laptop Upload Bytes"
+        value_template: >-
+          {{ (value_json.rsp | selectattr('ip', 'equalto', '192.168.1.42')
+              | map(attribute='bytes.sent') | first) | default(0, true) }}
+        unit_of_measurement: B
+        device_class: data_size
+        state_class: total_increasing
+```
+
+One HTTP call serves every device; duplicate the two sensors per device and change the IP.
+
+```yaml
+type: custom:network-speed-monitor
+title: NordVPN clients
+include_entities:
+  - sensor.laptop_download_bytes
+  - sensor.laptop_upload_bytes
+aggregates: off
+```
+
+Copy-ready package: [`docs/examples/netflow-ha-package.yaml`](examples/netflow-ha-package.yaml).
+
+Trade-offs compared to the MQTT bridge:
+
+| | HA `rest` sensors | ntopng → MQTT bridge |
+| --- | --- | --- |
+| Extra process | none | one small service |
+| New devices | add a sensor pair manually | discovered automatically |
+| History/recorder | yes (part of HA) | MQTT retained + recorder optional |
+| Polling | one request per `scan_interval` | one request per `--interval` |
+
+Note: keep the REST sensors out of the "device" aggregation trap - name them without `wan`, `lan`,
+`vpn` or `tunnel` so they are ranked as devices rather than interfaces.
 
 ---
 

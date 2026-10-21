@@ -46,7 +46,7 @@ const AGGREGATE_HINT =
 
 /** Words that are noise once the reading is displayed as a ranked device row. */
 const NOISE =
-  /\b(download|downloads|upload|uploads|down|up|dl|ul|rx|tx|in|out|receive[ds]?|sent|transmit(ted|ting)?|inbound|outbound|ingress|egress|speed|rate|throughput|bandwidth|traffic|total|current|now|utilization|utilisation)\b/gi;
+  /\b(download|downloads|upload|uploads|down|up|dl|ul|rx|tx|in|out|receive[ds]?|sent|transmit(ted|ting)?|inbound|outbound|ingress|egress|speed|rate|throughput|bandwidth|traffic|total|bytes?|current|now|utilization|utilisation)\b/gi;
 
 export function detectDirection(text: string): Direction | null {
   const normalized = text.replace(/[_.]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2");
