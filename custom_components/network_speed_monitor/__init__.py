@@ -39,9 +39,21 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
     except (ImportError, AttributeError):
         # Home Assistant < 2024.7
         hass.http.register_static_path(FRONTEND_URL, str(card_path), cache_headers=False)
+    except Exception:  # noqa: BLE001 - never break setup because of the card
+        _LOGGER.exception("Could not serve the card at %s", FRONTEND_URL)
+        return
+
+    try:
+        from homeassistant.components.frontend import add_extra_js_url
+    except ImportError:  # pragma: no cover - very old Home Assistant
+        add_extra_js_url = None  # type: ignore[assignment]
 
     url = f"{FRONTEND_URL}?v={VERSION}"
-    hass.data.setdefault("frontend_extra_module_url", set()).add(url)
+    if add_extra_js_url is not None:
+        add_extra_js_url(hass, url)
+    else:  # pragma: no cover - fallback for older cores
+        hass.data.setdefault("frontend_extra_module_url", set()).add(url)
+
     hass.data[DATA_FRONTEND_REGISTERED] = True
     _LOGGER.info("Network Speed Monitor card registered at %s", url)
 

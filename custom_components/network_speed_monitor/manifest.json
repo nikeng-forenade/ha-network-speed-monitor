@@ -1,12 +1,17 @@
 {
   "domain": "network_speed_monitor",
   "name": "Network Speed Monitor",
-  "codeowners": ["@nikeng-forenade"],
+  "codeowners": [
+    "@nikeng-forenade"
+  ],
   "config_flow": true,
-  "dependencies": ["http", "frontend"],
+  "dependencies": [
+    "http",
+    "frontend"
+  ],
   "documentation": "https://github.com/nikeng-forenade/ha-network-speed-monitor",
   "integration_type": "service",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/nikeng-forenade/ha-network-speed-monitor/issues",
-  "version": "1.3.0"
+  "version": "1.3.1"
 }
