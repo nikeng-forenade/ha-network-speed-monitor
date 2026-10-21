@@ -24,4 +24,6 @@ jobs:
       - run: npm run build
 
       - name: Ensure build output is committed
-        run: git diff --exit-code -- dist network-speed-monitor.js
+        run: |
+          git diff --exit-code -- dist custom_components
+          python -c "import json,pathlib;p=json.loads(pathlib.Path('custom_components/network_speed_monitor/manifest.json').read_text());v=json.loads(pathlib.Path('package.json').read_text())['version'];assert p['version']==v,(p['version'],v)"

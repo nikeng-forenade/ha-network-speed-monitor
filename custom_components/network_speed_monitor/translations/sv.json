@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Network Speed Monitor",
+        "description": "Lägger till Network Speed Monitor-kortet i din dashboard. Inga inställningar behövs - kortet finns sedan i kortväljaren."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Redan konfigurerad."
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Network Speed Monitor",
+        "description": "Adds the Network Speed Monitor card to your dashboard. No settings are needed - the card is then available in the card picker."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Already configured."
+    }
+  }
+}

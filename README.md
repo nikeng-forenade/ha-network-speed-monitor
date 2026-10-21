@@ -39,14 +39,28 @@ template sensors, … — and renders two animated Top-N rankings plus Top-N tot
 
 ## Installation
 
-### HACS (custom repository)
+The repository ships a Home Assistant **integration** that serves the card and registers the
+frontend resource for you — no manual Lovelace resource needed.
 
-1. HACS → **Frontend** → ⋮ → **Custom repositories**.
-2. Add `https://github.com/nikeng-forenade/ha-network-speed-monitor` with category **Lovelace**.
-3. Install **Network Speed Monitor** and reload the browser (hard refresh).
-4. Add the card: **Edit dashboard → Add card → Network Speed Monitor**.
+### HACS (recommended)
 
-### Manual
+1. HACS → ⋮ → **Custom repositories**.
+2. Add `https://github.com/nikeng-forenade/ha-network-speed-monitor` with category **Integration**.
+3. Install **Network Speed Monitor**.
+4. Restart Home Assistant.
+5. **Settings → Devices & services → Add integration → Network Speed Monitor** (no settings; it only
+   registers the card).
+6. Hard-refresh the browser, then **Edit dashboard → Add card → Network Speed Monitor**.
+
+The integration creates no entities. It serves `/network_speed_monitor/network-speed-monitor.js` and
+adds it to the frontend module URLs, so the card is available in the picker immediately.
+
+### Manual (integration)
+
+1. Copy `custom_components/network_speed_monitor` into `/config/custom_components/`.
+2. Restart Home Assistant and add the integration as above.
+
+### Manual (card only, no integration)
 
 1. Download `network-speed-monitor.js` from the latest release.
 2. Copy it to `/config/www/network-speed-monitor.js`.
@@ -57,7 +71,15 @@ template sensors, … — and renders two animated Top-N rankings plus Top-N tot
    type: module
    ```
 
-4. Add the card and reload.
+4. Hard-refresh and add the card.
+
+> If the card shows a spinner that never finishes, the resource is usually loaded as `js` instead of
+> `module`, or an old file is cached. The integration path avoids both problems.
+
+### Updating
+
+HACS → **Network Speed Monitor** → **Redownload**, then restart Home Assistant and hard-refresh. The
+`?v=` query on the module URL changes with every version, so the browser cannot keep a stale bundle.
 
 ## Quick start
 
@@ -219,10 +241,10 @@ generated with that harness.
 
 ## Releasing
 
-1. Bump `version` in `package.json`.
+1. Bump `version` in `package.json` (the build syncs `manifest.json` and `const.py`).
 2. `npm run build`, commit, `git tag v1.x.y`, `git push --tags`.
-3. The release workflow builds the bundle and attaches `network-speed-monitor.js`, which is what HACS
-   downloads.
+3. The release workflow attaches `dist/network-speed-monitor.js` for manual installs; HACS installs
+   the integration from the tag itself.
 
 ## Troubleshooting
 

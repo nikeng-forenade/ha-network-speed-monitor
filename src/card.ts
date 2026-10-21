@@ -756,7 +756,17 @@ export class NetworkSpeedMonitor extends LitElement {
 
   protected override render(): TemplateResult | typeof nothing {
     const config = this._config;
-    if (!config) return nothing;
+    if (!config) {
+      return html`
+        <ha-card>
+          <div class="wrap">
+            <p class="empty">
+              Network Speed Monitor ${CARD_VERSION}: waiting for card configuration…
+            </p>
+          </div>
+        </ha-card>
+      `;
+    }
 
     const view = this._view;
     const showDownload = config.show !== "upload";
