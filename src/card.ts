@@ -139,6 +139,7 @@ export class NetworkSpeedMonitor extends LitElement {
     this._limitOverride = undefined;
     this._refreshOverride = undefined;
     this._filter = "";
+    this._clearTimer();
     if (this.isConnected) {
       this._evaluate();
       this._schedule();

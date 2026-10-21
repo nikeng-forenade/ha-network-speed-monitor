@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Network Speed Monitor – editor preview</title>
+    <link rel="stylesheet" href="preview.css" />
+  </head>
+  <body>
+    <div class="stage">
+      <ha-card><network-speed-monitor-editor id="editor"></network-speed-monitor-editor></ha-card>
+    </div>
+
+    <script>
+      class HaCard extends HTMLElement {}
+      customElements.define("ha-card", HaCard);
+
+      // Minimal stand-ins for Home Assistant's form components.
+      class HaForm extends HTMLElement {
+        set schema(value) {
+          this._schema = value;
+          this.textContent = `ha-form with ${value.length} fields`;
+        }
+        set data(value) {
+          this._data = value;
+        }
+        set hass(value) {}
+        set computeLabel(value) {}
+        set computeHelper(value) {}
+      }
+      class HaSelector extends HTMLElement {
+        set selector(value) {
+          this._selector = value;
+        }
+        set value(value) {
+          this._value = value;
+          this.textContent = value || "(none)";
+        }
+        set hass(value) {}
+        set label(value) {
+          this.title = value;
+        }
+      }
+      customElements.define("ha-form", HaForm);
+      customElements.define("ha-selector", HaSelector);
+    </script>
+
+    <script type="module">
+      import "../dist/network-speed-monitor.js";
+
+      const hass = {
+        states: {},
+        entities: {
+          "sensor.pc_download": { entity_id: "sensor.pc_download", platform: "unifi" },
+          "sensor.nas_upload": { entity_id: "sensor.nas_upload", platform: "snmp" },
+        },
+        devices: {},
+        callWS: async () => ({}),
+      };
+
+      const editor = document.getElementById("editor");
+      editor.hass = hass;
+      editor.setConfig({
+        type: "custom:network-speed-monitor",
+        title: "Network Speed Monitor",
+        pairs: [{ name: "NAS Server", download: "sensor.pc_download", upload: "sensor.nas_upload" }],
+        name_overrides: { "sensor.pc_download": "Desktop-PC" },
+        download_color: "#1a73e8",
+      });
+    </script>
+  </body>
+</html>

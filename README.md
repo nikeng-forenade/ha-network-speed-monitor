@@ -159,7 +159,8 @@ npm run watch       # rebuild on change
 ```
 
 Open `preview/preview.html` in a browser after building to see the card with sample data (no Home
-Assistant required). Append `?dark=1` for the dark palette. The preview pages under `docs/` are
+Assistant required). Append `?dark=1` for the dark palette. `preview/editor-preview.html` renders the
+visual editor against stub `ha-form`/`ha-selector` elements. The preview images under `docs/` are
 generated with that harness.
 
 ## Releasing

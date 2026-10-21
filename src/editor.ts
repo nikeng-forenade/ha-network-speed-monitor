@@ -149,7 +149,9 @@ export class NetworkSpeedMonitorEditor extends LitElement {
     }
   `;
 
-  static override properties = {};
+  static override properties = {
+    _configState: { state: true },
+  };
 
   private _hass?: HomeAssistant;
   private _configState?: NetworkSpeedMonitorConfig;
