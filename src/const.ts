@@ -31,6 +31,7 @@ export const DEFAULT_CONFIG = {
   sort_direction: "desc" as const,
   scope: "entity" as const,
   aggregates: "separate" as const,
+  aggregates_max: 6,
   stale_after: 300,
   hold_seconds: 60,
   warn_threshold: 75,

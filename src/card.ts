@@ -465,8 +465,8 @@ export class NetworkSpeedMonitor extends LitElement {
     const parts: string[] = [];
     if (config.show_rank !== false) parts.push("1.5rem");
     if (config.show_icons !== false) parts.push("1.5rem");
-    parts.push("minmax(0, 1.25fr)");
-    if (config.show_bars !== false) parts.push("minmax(2.5rem, 1.15fr)");
+    parts.push("minmax(4.5rem, 1.25fr)");
+    if (config.show_bars !== false) parts.push("minmax(2rem, 1.15fr)");
     parts.push("auto");
     if (config.show_timestamps !== false) parts.push("3.4rem");
     return parts.join(" ");
@@ -570,7 +570,8 @@ export class NetworkSpeedMonitor extends LitElement {
   private _renderAggregates(): TemplateResult | typeof nothing {
     const config = this._configOrDefault;
     if (config.aggregates === "off" || config.aggregates === "inline") return nothing;
-    const groups = this._view?.aggregates ?? [];
+    const limit = Math.max(0, Number(config.aggregates_max ?? DEFAULT_CONFIG.aggregates_max));
+    const groups = (this._view?.aggregates ?? []).slice(0, limit);
     if (groups.length === 0) return nothing;
     return html`<div class="interfaces">${groups.map((group) => this._renderAggregate(group))}</div>`;
   }

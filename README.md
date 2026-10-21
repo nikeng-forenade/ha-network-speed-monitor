@@ -179,6 +179,7 @@ ignored. The first reading of a counter is always shown as “waiting for the fi
 | `sort_direction` | `desc` \| `asc` | `desc` | Highest or lowest first. |
 | `scope` | `entity` \| `device` | `entity` | `device` merges sensors of one device per direction (highest wins) to avoid double counting interface + device sensors. |
 | `aggregates` | `separate` \| `inline` \| `off` | `separate` | How interface-level sensors (WAN, LAN, VPN tunnels) are shown. |
+| `aggregates_max` | number | `6` | Interface cards to show, highest traffic first (keeps routers with many `opt*` interfaces tidy). |
 | `max_speed` | number | – | Mbps used as 100 % for bar scaling; omit to scale bars relative to the fastest device. |
 | `warn_threshold` | number (%) | `75` | Bar turns orange at this share of `max_speed`. |
 | `critical_threshold` | number (%) | `90` | Bar turns red at this share of `max_speed`. |

@@ -19,6 +19,7 @@ const LABELS: Record<string, string> = {
   sort_direction: "Sort direction",
   scope: "Aggregation scope",
   aggregates: "WAN / VPN sensors",
+  aggregates_max: "Max interfaces shown",
   show_bars: "Show speed bars",
   show_rank: "Show ranking numbers",
   show_timestamps: "Show reading age",
@@ -49,6 +50,7 @@ const HELPERS: Record<string, string> = {
     "Per device keeps one row per device (highest sensor wins) to avoid counting an interface and a device sensor twice.",
   aggregates:
     "Interface sensors (WAN, LAN, NordVPN, WireGuard, …) belong to the whole network. Show them in their own strip, rank them with the devices, or ignore them.",
+  aggregates_max: "How many interface cards to show, highest traffic first.",
   max_speed:
     "Bars are scaled to this value. Leave at 0 to scale bars relative to the fastest device.",
   warn_threshold: "Percentage of the bar scale where a bar turns orange (needs a bar scale).",
@@ -300,8 +302,11 @@ export class NetworkSpeedMonitorEditor extends LitElement {
           },
         },
       },
-      { name: "show_bars", selector: { boolean: {} } },      { name: "show_rank", selector: { boolean: {} } },
-      { name: "show_timestamps", selector: { boolean: {} } },
+      { name: "show_bars", selector: { boolean: {} } },
+      {
+        name: "aggregates_max",
+        selector: { number: { min: 1, max: 20, mode: "box", step: 1 } },
+      },      { name: "show_rank", selector: { boolean: {} } },      { name: "show_timestamps", selector: { boolean: {} } },
       { name: "show_icons", selector: { boolean: {} } },
       { name: "show_totals", selector: { boolean: {} } },
       { name: "show_search", selector: { boolean: {} } },

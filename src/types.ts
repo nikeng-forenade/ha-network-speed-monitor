@@ -51,6 +51,7 @@ export interface NetworkSpeedMonitorConfig {
   sort_direction?: SortDirection;
   scope?: Scope;
   aggregates?: AggregateMode;
+  aggregates_max?: number;
   max_speed?: number;
   warn_threshold?: number;
   critical_threshold?: number;

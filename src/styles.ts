@@ -11,6 +11,7 @@ export const cardStyles = css`
     --nsm-surface-2: color-mix(in srgb, var(--nsm-fg) 7%, transparent);
     --nsm-track: color-mix(in srgb, var(--nsm-fg) 11%, transparent);
     display: block;
+    container-type: inline-size;
   }
 
   /* Light HA themes get slightly deeper accents so bars and text keep contrast. */
@@ -252,43 +253,60 @@ export const cardStyles = css`
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 880px) {
+  /* Stack the rankings based on the card width, not the window width, so a
+     narrow dashboard column gets the same treatment as a phone. */
+  @container (max-width: 720px) {
     .panels.columns {
       grid-template-columns: minmax(0, 1fr);
     }
   }
 
+  @container (max-width: 560px) {
+    .row {
+      grid-template-columns: 1.4rem 1.3rem minmax(0, 1fr) minmax(1.5rem, 1.1fr) auto !important;
+      gap: 0.45rem;
+    }
+
+    .age {
+      display: none;
+    }
+
+    .wrap {
+      padding: 0.9rem 0.8rem 0.75rem;
+    }
+  }
+
   .interfaces {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    gap: 0.6rem;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.45rem;
   }
 
   .iface {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.15rem;
     min-width: 0;
-    padding: 0.55rem 0.7rem;
+    padding: 0.4rem 0.55rem;
     border: 1px solid var(--nsm-border);
-    border-radius: 0.75rem;
+    border-radius: 0.6rem;
     background: var(--nsm-surface);
   }
 
   .iface-head {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.32rem;
     min-width: 0;
   }
 
   .iface-head ha-icon {
-    --mdc-icon-size: 1.05rem;
+    --mdc-icon-size: 0.95rem;
     color: var(--nsm-muted);
   }
 
   .iface-name {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--nsm-fg);
     overflow: hidden;
@@ -298,7 +316,7 @@ export const cardStyles = css`
 
   .iface-age {
     margin-left: auto;
-    font-size: 0.7rem;
+    font-size: 0.66rem;
     color: var(--nsm-muted);
     white-space: nowrap;
   }
@@ -306,21 +324,21 @@ export const cardStyles = css`
   .iface-values {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.6rem;
     flex-wrap: wrap;
   }
 
   .iface-value {
     display: inline-flex;
     align-items: center;
-    gap: 0.22rem;
-    font-size: 0.92rem;
+    gap: 0.18rem;
+    font-size: 0.8rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
 
   .iface-value ha-icon {
-    --mdc-icon-size: 0.9rem;
+    --mdc-icon-size: 0.8rem;
   }
 
   .iface-value.download {
@@ -616,7 +634,7 @@ export const cardStyles = css`
     margin-left: 0.22rem;
   }
 
-  @media (max-width: 640px) {
+  @container (max-width: 460px) {
     .totals {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -625,6 +643,10 @@ export const cardStyles = css`
       border-left: 0;
       border-top: 1px solid var(--nsm-border);
       padding-top: 0.55rem;
+    }
+
+    .brand h1 {
+      font-size: 1.3rem;
     }
   }
 
