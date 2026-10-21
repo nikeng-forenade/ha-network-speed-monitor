@@ -55,6 +55,7 @@ export interface NetworkSpeedMonitorConfig {
   warn_threshold?: number;
   critical_threshold?: number;
   stale_after?: number;
+  hold_seconds?: number;
   download_color?: string;
   upload_color?: string;
   include_integrations?: string[];

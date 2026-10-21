@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { CounterRateTracker } from "../src/counter";
 import { buildSources } from "../src/discovery";
-import { evaluateSources, groupAggregates, rankReadings, type Reading } from "../src/ranking";
+import {
+  applyHold,
+  evaluateSources,
+  groupAggregates,
+  rankReadings,
+  type Reading,
+} from "../src/ranking";
 import { makeHass } from "./helpers";
 
 function reading(
@@ -124,6 +130,60 @@ describe("groupAggregates", () => {
 
   it("returns nothing when there are no interface sensors", () => {
     expect(groupAggregates([reading("Laptop", 92)])).toEqual([]);
+  });
+});
+
+describe("applyHold", () => {
+  it("keeps the last value while a sensor is unavailable", () => {
+    const cache = new Map();
+    const first = applyHold([{ ...reading("Laptop", 92), sampledAt: 1000 }], cache, {
+      now: 1000,
+      holdMs: 60_000,
+    });
+    expect(first[0].mbps).toBe(92);
+
+    const gone = { ...reading("Laptop", null), status: "unavailable" as const };
+    const held = applyHold([gone], cache, { now: 31_000, holdMs: 60_000 });
+    expect(held[0].mbps).toBe(92);
+    expect(held[0].status).toBe("stale");
+    expect(held[0].ageMs).toBe(30_000);
+  });
+
+  it("drops the held value after the hold window", () => {
+    const cache = new Map();
+    applyHold([{ ...reading("Laptop", 92), sampledAt: 1000 }], cache, {
+      now: 1000,
+      holdMs: 60_000,
+    });
+
+    const gone = { ...reading("Laptop", null), status: "unavailable" as const };
+    const held = applyHold([gone], cache, { now: 120_000, holdMs: 60_000 });
+    expect(held[0].mbps).toBeNull();
+    expect(cache.size).toBe(0);
+  });
+
+  it("does nothing when holding is disabled", () => {
+    const cache = new Map();
+    applyHold([{ ...reading("Laptop", 92), sampledAt: 1000 }], cache, {
+      now: 1000,
+      holdMs: 0,
+    });
+    const gone = { ...reading("Laptop", null), status: "unavailable" as const };
+    expect(applyHold([gone], cache, { now: 2000, holdMs: 0 })[0].mbps).toBeNull();
+  });
+
+  it("does not replace a real zero with an old value", () => {
+    const cache = new Map();
+    applyHold([{ ...reading("Laptop", 92), sampledAt: 1000 }], cache, {
+      now: 1000,
+      holdMs: 60_000,
+    });
+    const idle = applyHold([{ ...reading("Laptop", 0), sampledAt: 2000 }], cache, {
+      now: 2000,
+      holdMs: 60_000,
+    });
+    expect(idle[0].mbps).toBe(0);
+    expect(idle[0].status).toBe("ok");
   });
 });
 

@@ -32,6 +32,7 @@ export const DEFAULT_CONFIG = {
   scope: "entity" as const,
   aggregates: "separate" as const,
   stale_after: 300,
+  hold_seconds: 60,
   warn_threshold: 75,
   critical_threshold: 90,
 };

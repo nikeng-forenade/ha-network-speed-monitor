@@ -150,6 +150,48 @@ export interface AggregateGroup {
   upload?: Reading;
 }
 
+export interface HeldSample {
+  mbps: number;
+  at: number;
+}
+
+/**
+ * Keeps the last known speed for sensors that briefly report
+ * `unavailable`/`unknown` (router reboots, integration reloads, a client
+ * leaving Wi-Fi), so rows do not vanish from the ranking and reshuffle.
+ */
+export function applyHold(
+  readings: Reading[],
+  cache: Map<string, HeldSample>,
+  options: { now: number; holdMs: number }
+): Reading[] {
+  const { now, holdMs } = options;
+  return readings.map((reading) => {
+    if (reading.mbps !== null) {
+      // A real reading (including 0 when a device is idle) always wins.
+      if (reading.mbps > 0 && reading.sampledAt !== null) {
+        cache.set(reading.entityId, { mbps: reading.mbps, at: reading.sampledAt });
+      }
+      return reading;
+    }
+    if (holdMs <= 0) return reading;
+    const held = cache.get(reading.entityId);
+    if (!held) return reading;
+    const age = Math.max(0, now - held.at);
+    if (age > holdMs) {
+      cache.delete(reading.entityId);
+      return reading;
+    }
+    return {
+      ...reading,
+      mbps: held.mbps,
+      sampledAt: held.at,
+      ageMs: age,
+      status: "stale",
+    };
+  });
+}
+
 /**
  * Pair interface level readings into WAN/VPN rows. Overlapping sensors for the
  * same interface keep the highest reading instead of summing them.

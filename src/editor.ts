@@ -32,6 +32,7 @@ const LABELS: Record<string, string> = {
   warn_threshold: "Warning threshold (%)",
   critical_threshold: "Critical threshold (%)",
   stale_after: "Reading considered stale after (s)",
+  hold_seconds: "Keep last value when a sensor drops out (s)",
   download_color: "Download color",
   upload_color: "Upload color",
   include_integrations: "Only use these integrations",
@@ -53,6 +54,8 @@ const HELPERS: Record<string, string> = {
   warn_threshold: "Percentage of the bar scale where a bar turns orange (needs a bar scale).",
   critical_threshold: "Percentage of the bar scale where a bar turns red (needs a bar scale).",
   stale_after: "Sensors that have not reported for this long are dimmed.",
+  hold_seconds:
+    "When a sensor turns unavailable (device off, Wi-Fi drop, integration reload) its last speed is kept, dimmed, for this long so the ranking does not jump. Set to 0 to remove rows immediately.",
   include_integrations: "Empty means all integrations are considered.",
   include_entities: "Empty means sensors are discovered automatically.",
   show_sparkline: "Requires the Home Assistant recorder for the selected sensors.",
@@ -322,6 +325,10 @@ export class NetworkSpeedMonitorEditor extends LitElement {
       {
         name: "stale_after",
         selector: { number: { min: 10, max: 86400, mode: "box", unit_of_measurement: "s" } },
+      },
+      {
+        name: "hold_seconds",
+        selector: { number: { min: 0, max: 3600, mode: "box", unit_of_measurement: "s" } },
       },
       { name: "download_color", selector: { color_rgb: {} } },
       { name: "upload_color", selector: { color_rgb: {} } },

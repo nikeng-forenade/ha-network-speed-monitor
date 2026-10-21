@@ -135,6 +135,7 @@ ignored. The first reading of a counter is always shown as “waiting for the fi
 | `warn_threshold` | number (%) | `75` | Bar turns orange at this share of `max_speed`. |
 | `critical_threshold` | number (%) | `90` | Bar turns red at this share of `max_speed`. |
 | `stale_after` | number (s) | `300` | Readings older than this are dimmed. |
+| `hold_seconds` | number (s) | `60` | Keep the last value (dimmed) when a sensor turns `unavailable`, so rows do not vanish and the ranking does not jump. `0` removes them immediately. |
 | `show_bars` | boolean | `true` | Show speed bars. |
 | `show_rank` | boolean | `true` | Show ranking numbers. |
 | `show_timestamps` | boolean | `true` | Show the age of each reading. |
@@ -206,6 +207,10 @@ other way around). Fix the unit in the source sensor, or use a template sensor w
 
 **Download values stay at “waiting for the first reading”.** The sensor is a cumulative counter; the
 card needs two samples. This is expected for the first update interval after a page load.
+
+**A device disappeared from the list.** A sensor that turns `unavailable` (laptop asleep, Wi-Fi drop,
+integration reload) is normally removed from the ranking. `hold_seconds` (default `60`) keeps the last
+speed, dimmed, for that long so the list does not jump. Set it to `0` to remove rows immediately.
 
 **Everything is 0.** Many routers report 0 when idle. Check the sensor in Developer Tools → States.
 

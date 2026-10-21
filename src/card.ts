@@ -13,10 +13,12 @@ import {
 import { buildSources, type SourceConfig } from "./discovery";
 import { fetchSparklines } from "./history";
 import {
+  applyHold,
   evaluateSources,
   groupAggregates,
   rankReadings,
   type AggregateGroup,
+  type HeldSample,
   type RankedRow,
   type RankResult,
   type RankOptions,
@@ -114,6 +116,7 @@ export class NetworkSpeedMonitor extends LitElement {
   private _sources?: SourceConfig[];
   private _registryRef?: unknown;
   private _tracker = new CounterRateTracker({ maxMbps: 1_000_000 });
+  private _hold = new Map<string, HeldSample>();
   private _timer?: number;
   private _sparkTimer?: number;
   private _sparkToken = 0;
@@ -137,6 +140,7 @@ export class NetworkSpeedMonitor extends LitElement {
     }
     this._config = { ...DEFAULT_CONFIG, ...config };
     this._sources = undefined;
+    this._hold.clear();
     this._tracker = new CounterRateTracker({
       staleMs: Math.max(this._staleAfterMs, 60_000),
       maxMbps: 1_000_000,
@@ -228,6 +232,11 @@ export class NetworkSpeedMonitor extends LitElement {
     return (Number.isFinite(seconds) && seconds > 0 ? seconds : DEFAULT_CONFIG.stale_after) * 1000;
   }
 
+  private get _holdSeconds(): number {
+    const value = Number(this._config?.hold_seconds ?? DEFAULT_CONFIG.hold_seconds);
+    return Number.isFinite(value) && value >= 0 ? value : DEFAULT_CONFIG.hold_seconds;
+  }
+
   private get _isDark(): boolean {
     if (typeof this._hass?.themes?.darkMode === "boolean") return this._hass.themes.darkMode;
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -260,10 +269,14 @@ export class NetworkSpeedMonitor extends LitElement {
     }
 
     const now = Date.now();
-    const readings = evaluateSources(hass, this._sources, {
+    const evaluated = evaluateSources(hass, this._sources, {
       now,
       staleAfterMs: this._staleAfterMs,
       tracker: this._tracker,
+    });
+    const readings = applyHold(evaluated, this._hold, {
+      now,
+      holdMs: this._holdSeconds * 1000,
     });
 
     const options: RankOptions = {
