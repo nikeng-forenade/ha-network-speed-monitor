@@ -104,8 +104,51 @@ describe("OPNsense style interface sensors", () => {
     expect(vpnOut?.label).toBe("NordVPN");
   });
 
-  it("labels hass-opnsense rate sensors from the entity id", () => {
-    const sources = buildSources(hass, baseConfig);
+  it("treats NIC and switch port sensors as interfaces", () => {
+    const portHass = makeHass(
+      {
+        "sensor.fw_igb0_rx": {
+          state: "12",
+          attributes: { unit_of_measurement: "Mbit/s", friendly_name: "RX" },
+        },
+        "sensor.fw_igb0_tx": {
+          state: "4",
+          attributes: { unit_of_measurement: "Mbit/s", friendly_name: "TX" },
+        },
+        "sensor.switch_port_3_rx": {
+          state: "8",
+          attributes: { unit_of_measurement: "Mbit/s", friendly_name: "Port 3 RX" },
+        },
+        "sensor.living_room_tv_rx": {
+          state: "22",
+          attributes: {
+            unit_of_measurement: "Mbit/s",
+            device_class: "data_rate",
+            friendly_name: "Living Room TV RX",
+          },
+        },
+      },
+      {
+        "sensor.fw_igb0_rx": { platform: "opnsense", device_id: "fw" },
+        "sensor.fw_igb0_tx": { platform: "opnsense", device_id: "fw" },
+        "sensor.switch_port_3_rx": { platform: "unifi", device_id: "sw" },
+        "sensor.living_room_tv_rx": { platform: "unifi", device_id: "tv" },
+      }
+    );
+
+    const sources = buildSources(portHass, baseConfig);
+    const byId = (id: string) => sources.find((source) => source.entityId === id);
+
+    expect(byId("sensor.fw_igb0_rx")?.aggregate).toBe(true);
+    expect(byId("sensor.fw_igb0_rx")?.label).toBe("IGB0");
+    expect(byId("sensor.fw_igb0_tx")?.direction).toBe("upload");
+    expect(byId("sensor.switch_port_3_rx")?.aggregate).toBe(true);
+    expect(byId("sensor.switch_port_3_rx")?.label).toBe("PORT3");
+    // A real client with an rx sensor must stay a device.
+    expect(byId("sensor.living_room_tv_rx")?.aggregate).toBe(false);
+  });
+
+  it("labels hass-opnsense rate sensors from the entity id", () => {    const sources = buildSources(hass, baseConfig);
     const wan = sources.find(
       (source) => source.entityId === "sensor.firewall_wan_inbytes_kilobytes_per_second"
     );

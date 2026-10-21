@@ -42,7 +42,7 @@ const NON_NETWORK = /\b(disk|storage|hdd|ssd|drive|memory|ram|swap|cpu|gpu|fan|t
  * are kept out of the per-device ranking by default.
  */
 const AGGREGATE_HINT =
-  /\b(wan|wan6|lan|wlan|guest|vpn|nordvpn|wireguard|openvpn|ipsec|tun\d*|wg\d*|pppoe|interface|iface|opt\d+|bridge|uplink|internet)\b/i;
+  /\b(wan|wan6|lan|wlan|guest|vpn|nordvpn|wireguard|openvpn|ipsec|tun\d*|wg\d*|pppoe\d*|interface|iface|opt\d+|bridge|uplink|internet|eth\d+|igb\d+|em\d+|re\d+|vtnet\d+|lagg\d+|br\d+|bond\d+|port\s?\d+|if\s?\d+|sfp\d*|xe-?\d+|ae\d+|swp\d+|te\d+|ge\d+)\b/i;
 
 /** Words that are noise once the reading is displayed as a ranked device row. */
 const NOISE =
@@ -97,6 +97,7 @@ const INTERFACE_RULES: Array<[RegExp, string | ((match: RegExpMatchArray) => str
   [/\bpppoe\b/i, "PPPoE"],
   [/\bguest\b/i, "Guest"],
   [/\btun(\d+)\b/i, (match) => `TUN${match[1]}`],
+  [/\b(eth|igb|em|re|vtnet|lagg|br|bond|pppoe|port|if|sfp|xe|ae|swp|te|ge)\s?(\d+)\b/i, (match) => `${match[1].toUpperCase()}${match[2]}`],
 ];
 
 /**
@@ -180,6 +181,9 @@ export function buildSources(
       undefined;
 
     const hintText = textFor(entityId, attributes, String(entry?.translation_key ?? ""));
+    // Underscores and dots are word characters, so `\b` would not match `wan`
+    // inside `sensor.fw_wan_rx`. Normalise before keyword tests.
+    const hintWords = hintText.replace(/[._]/g, " ");
 
     if (parsed.kind === "counter") {
       const looksLikeCounter =
@@ -188,14 +192,14 @@ export function buildSources(
       if (!looksLikeCounter) continue;
     } else if (
       deviceClass !== "data_rate" &&
-      !RATE_HINT.test(hintText) &&
-      !AGGREGATE_HINT.test(hintText)
+      !RATE_HINT.test(hintWords) &&
+      !AGGREGATE_HINT.test(hintWords)
     ) {
       // A rate unit alone is not enough (disk and memory throughput use the
       // same units), but interface names such as `WAN in` are a clear signal.
       continue;
     }
-    if (deviceClass !== "data_rate" && NON_NETWORK.test(hintText)) continue;
+    if (deviceClass !== "data_rate" && NON_NETWORK.test(hintWords)) continue;
 
     const direction = manual?.direction ?? detectDirection(hintText);
     if (!direction) continue;
@@ -212,7 +216,7 @@ export function buildSources(
       entityId;
 
     const name = manual?.pair.name ?? overrides[entityId] ?? cleanName(String(rawName));
-    const aggregate = AGGREGATE_HINT.test(`${entityId.replace(/[._]/g, " ")} ${hintText}`);
+    const aggregate = AGGREGATE_HINT.test(`${entityId.replace(/[._]/g, " ")} ${hintWords}`);
 
     sources.push({
       entityId,
@@ -232,7 +236,7 @@ export function buildSources(
       manual: Boolean(manual),
       aggregate,
       label: aggregate
-        ? interfaceLabel(entityId, hintText, aggregateLabel(String(rawName)))
+        ? interfaceLabel(entityId, hintWords, aggregateLabel(String(rawName)))
         : name,
       confidence: aggregate ? 0.6 : manual ? 1 : 0.9,
     });
