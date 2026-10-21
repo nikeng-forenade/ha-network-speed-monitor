@@ -151,6 +151,63 @@ def load_names(path: str | None) -> dict[str, str]:
     return {str(key): str(value) for key, value in content.items()}
 
 
+def _host_display(entry: dict[str, Any]) -> str:
+    """Friendly label from ntopng's hostname (`appletv.fritz.box` -> `Appletv`)."""
+    raw = str(entry.get("name") or "").strip()
+    if "." in raw:
+        raw = raw.split(".")[0]
+    if raw and raw == raw.lower():
+        raw = raw.replace("_", " ").title()
+    return raw
+
+
+def render_ha_yaml(
+    base_url: str,
+    ifid: int,
+    hosts: dict[str, dict[str, Any]],
+    names: dict[str, str],
+) -> str:
+    """Render a copy-paste Home Assistant `rest` block for the given hosts."""
+    resource = (
+        f"{base_url.rstrip('/')}/lua/rest/v2/get/host/active.lua"
+        f"?ifid={ifid}&fields=ip,name,bytes.sent,bytes.rcvd"
+    )
+    lines = [
+        "rest:",
+        f'  - resource: "{resource}"',
+        "    authentication: basic",
+        "    username: admin",
+        "    password: !secret ntopng_password",
+        "    scan_interval: 10",
+        "    timeout: 10",
+        "    sensor:",
+    ]
+
+    ordered = sorted(
+        hosts.items(),
+        key=lambda item: (
+            names.get(item[0]) or _host_display(item[1]) or item[0]
+        ).lower(),
+    )
+    for ip, entry in ordered:
+        display = names.get(ip) or _host_display(entry) or ip
+        for direction, key in (("Download", "bytes.rcvd"), ("Upload", "bytes.sent")):
+            lines.extend(
+                [
+                    f'      - name: "{display} {direction} Bytes"',
+                    "        value_template: >-",
+                    f"          {{{{ (value_json.rsp | selectattr('ip', 'equalto', '{ip}')",
+                    f"              | map(attribute='{key}') | first) | default(0, true) }}}}",
+                    "        unit_of_measurement: B",
+                    "        device_class: data_size",
+                    "        state_class: total_increasing",
+                    "",
+                ]
+            )
+
+    return "\n".join(lines)
+
+
 class Publisher:
     """Publishes discovery configs once, then only state updates."""
 
@@ -264,6 +321,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mqtt-client-id", default=os.environ.get("MQTT_CLIENT_ID", "netflow_to_mqtt"))
     parser.add_argument("--discovery-prefix", default="homeassistant")
     parser.add_argument("--topic-prefix", default="netflow")
+    parser.add_argument(
+        "--print-ha-yaml",
+        action="store_true",
+        help="print a Home Assistant rest-sensor block for the hosts of --ifid and exit",
+    )
     parser.add_argument("--dry-run", action="store_true", help="print rates instead of publishing")
     parser.add_argument("--once", action="store_true", help="stop after one poll")
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -294,6 +356,15 @@ def main(argv: list[str] | None = None) -> int:
                 f"{str(item.get('ifid', '')):>5}  "
                 f"{str(item.get('name', '')):<14} {item.get('description', '')}"
             )
+        return 0
+
+    if args.print_ha_yaml:
+        try:
+            hosts = fetch_hosts(session, args.ntopng_url, args.ifid, args.timeout)
+        except (requests.RequestException, RuntimeError) as error:
+            LOG.error("could not read hosts: %s", error)
+            return 1
+        print(render_ha_yaml(args.ntopng_url, args.ifid, hosts, names))
         return 0
 
     publisher = None if args.dry_run else Publisher(args)

@@ -100,6 +100,20 @@ curl -u admin:admin "http://opnsense.local:3000/lua/rest/v2/get/interface/list.l
 
 Pick the `ifid` of `tun0` / `wg0` / `ovpnc1` (the NordVPN interface).
 
+### Step 2b – generate the Home Assistant sensors
+
+With the right `ifid` you can skip the bridge entirely and let Home Assistant poll ntopng:
+
+```sh
+python netflow_to_mqtt.py --ntopng-url http://opnsense.local:3000 \
+  --ntopng-user admin --ntopng-password secret --ifid 7 --print-ha-yaml \
+  > /config/packages/netflow_vpn.yaml
+```
+
+That prints a `rest:` block with a download/upload byte sensor per host, using the hostnames ntopng
+already knows. Add `password: !secret ntopng_password` to `secrets.yaml`, restart, done — the card
+converts the counters to Mbps.
+
 ### Step 3 – run the poller
 
 [`docs/examples/netflow_to_mqtt.py`](examples/netflow_to_mqtt.py) polls ntopng, converts the byte
