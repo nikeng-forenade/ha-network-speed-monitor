@@ -1,0 +1,15 @@
+# Per-device speeds over NordVPN, published by docs/examples/netflow_to_mqtt.py.
+#
+# The script creates one data_rate sensor pair per device:
+#   sensor.netflow_laptop_download / sensor.netflow_laptop_upload
+# Discovery finds them automatically; the filters below just keep the card
+# focused on the VPN clients.
+type: custom:network-speed-monitor
+title: NordVPN clients
+subtitle: Per-device download and upload through the tunnel
+include_integrations:
+  - mqtt
+ranking_size: 10
+refresh_interval: 5
+unit: Mbps
+aggregates: off

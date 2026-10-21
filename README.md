@@ -104,6 +104,28 @@ Interface names are recognised automatically (`wan`, `wan6`, `lan`, `wlan`, `gue
 `nordvpn`, `wireguard`, `openvpn`, `ipsec`, `tun*`, `wg*`, `pppoe`, `opt1`…) and used as the strip
 label. Override the label or icon with a `pairs` entry.
 
+### Per-device usage through the VPN
+
+The interface sensors only tell you the tunnel total. To see **which device** uses NordVPN, with real
+per-device rates in this card, feed per-host data from ntopng into MQTT:
+
+1. OPNsense: enable **os-ntopng** (or NetFlow via `os-softflowd`) and monitor the VPN interface.
+2. Run [`docs/examples/netflow_to_mqtt.py`](docs/examples/netflow_to_mqtt.py) with
+   `--ifid <VPN interface id>`.
+3. The script publishes `sensor.netflow_<device>_download` / `_upload` with `device_class: data_rate`
+   and `unit_of_measurement: Mbit/s`, so this card discovers them automatically.
+
+```yaml
+type: custom:network-speed-monitor
+title: NordVPN clients
+include_integrations:
+  - mqtt
+aggregates: off
+```
+
+Full walkthrough, including how to find the interface id and how to avoid double counting:
+[docs/netflow-per-device-vpn.md](docs/netflow-per-device-vpn.md).
+
 ### Cumulative counters
 
 Cumulative counters (`B`, `kB`, `MiB`, …) are converted using the timestamps of the actual samples:
@@ -171,6 +193,7 @@ A pair forces the direction (no name guessing) and lets you set the displayed na
 
 - [Basic card](examples/basic.yaml)
 - [OPNsense with WAN and NordVPN interfaces](examples/opnsense.yaml)
+- [Per-device speeds over NordVPN](examples/netflow-vpn.yaml)
 - [Manual pairs and name overrides](examples/manual-pairs.yaml)
 - [Separate download and upload cards](examples/separate-cards.yaml)
 - [Compact card with thresholds](examples/compact.yaml)
