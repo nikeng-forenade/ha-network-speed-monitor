@@ -54,6 +54,14 @@ describe("OPNsense style interface sensors", () => {
         state: "52",
         attributes: { unit_of_measurement: "%", friendly_name: "CPU usage" },
       },
+      "sensor.firewall_wan_inbytes_kilobytes_per_second": {
+        state: "31",
+        attributes: { unit_of_measurement: "kB/s", friendly_name: "Traffic In Rate" },
+      },
+      "sensor.firewall_nordvpn_outbytes_kilobytes_per_second": {
+        state: "19",
+        attributes: { unit_of_measurement: "kB/s", friendly_name: "Traffic Out Rate" },
+      },
     },
     {
       "sensor.opnsense_wan_in": { platform: "opnsense", device_id: "fw" },
@@ -62,6 +70,14 @@ describe("OPNsense style interface sensors", () => {
       "sensor.opnsense_nordvpn_out": { platform: "opnsense", device_id: "fw" },
       "sensor.opnsense_dhcp_leases": { platform: "opnsense", device_id: "fw" },
       "sensor.opnsense_cpu": { platform: "opnsense", device_id: "fw" },
+      "sensor.firewall_wan_inbytes_kilobytes_per_second": {
+        platform: "opnsense",
+        device_id: "fw",
+      },
+      "sensor.firewall_nordvpn_outbytes_kilobytes_per_second": {
+        platform: "opnsense",
+        device_id: "fw",
+      },
     }
   );
 
@@ -86,6 +102,22 @@ describe("OPNsense style interface sensors", () => {
     expect(wanIn?.label).toBe("WAN");
     expect(vpnOut?.aggregate).toBe(true);
     expect(vpnOut?.label).toBe("NordVPN");
+  });
+
+  it("labels hass-opnsense rate sensors from the entity id", () => {
+    const sources = buildSources(hass, baseConfig);
+    const wan = sources.find(
+      (source) => source.entityId === "sensor.firewall_wan_inbytes_kilobytes_per_second"
+    );
+    const vpn = sources.find(
+      (source) => source.entityId === "sensor.firewall_nordvpn_outbytes_kilobytes_per_second"
+    );
+
+    expect(wan?.direction).toBe("download");
+    expect(wan?.label).toBe("WAN");
+    expect(wan?.aggregate).toBe(true);
+    expect(vpn?.direction).toBe("upload");
+    expect(vpn?.label).toBe("NordVPN");
   });
 
   it("ignores non bandwidth sensors from the same device", () => {

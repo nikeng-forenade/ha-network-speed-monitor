@@ -1,6 +1,6 @@
 {
   "name": "ha-network-speed-monitor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Home Assistant Lovelace card that ranks the Top 10 devices by live download and upload speed.",
   "type": "module",

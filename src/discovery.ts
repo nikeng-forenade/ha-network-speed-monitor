@@ -82,6 +82,38 @@ export function aggregateLabel(raw: string): string {
   return stripped || base;
 }
 
+const INTERFACE_RULES: Array<[RegExp, string | ((match: RegExpMatchArray) => string)]> = [
+  [/\bnordvpn\b/i, "NordVPN"],
+  [/\bwireguard\b|\bwg(\d+)\b/i, (match) => (match[1] ? `WireGuard ${match[1]}` : "WireGuard")],
+  [/\bopenvpn\b/i, "OpenVPN"],
+  [/\bipsec\b/i, "IPsec"],
+  [/\btailscale\b/i, "Tailscale"],
+  [/\bvpn\b/i, "VPN"],
+  [/\bwan6\b/i, "WAN6"],
+  [/\bwan\b/i, "WAN"],
+  [/\bwlan(\d*)\b/i, (match) => `WLAN${match[1] ?? ""}`],
+  [/\blan(\d*)\b/i, (match) => `LAN${match[1] ?? ""}`],
+  [/\bopt(\d+)\b/i, (match) => `OPT${match[1]}`],
+  [/\bpppoe\b/i, "PPPoE"],
+  [/\bguest\b/i, "Guest"],
+  [/\btun(\d+)\b/i, (match) => `TUN${match[1]}`],
+];
+
+/**
+ * Interfaces are usually only identifiable from the entity id, because the
+ * friendly name is shared across them (`Traffic In Rate` for every interface
+ * in the OPNsense integration).
+ */
+export function interfaceLabel(entityId: string, hintText: string, fallback: string): string {
+  const slug = entityId.includes(".") ? entityId.slice(entityId.indexOf(".") + 1) : entityId;
+  const haystack = `${slug.replace(/_/g, " ")} ${hintText}`;
+  for (const [pattern, label] of INTERFACE_RULES) {
+    const match = pattern.exec(haystack);
+    if (match) return typeof label === "function" ? label(match) : label;
+  }
+  return fallback;
+}
+
 function textFor(entityId: string, attributes: Record<string, unknown>, extra: string): string {
   const friendly = typeof attributes.friendly_name === "string" ? attributes.friendly_name : "";
   return [entityId, friendly, extra].filter(Boolean).join(" ");
@@ -180,7 +212,7 @@ export function buildSources(
       entityId;
 
     const name = manual?.pair.name ?? overrides[entityId] ?? cleanName(String(rawName));
-    const aggregate = AGGREGATE_HINT.test(`${entityId} ${hintText}`);
+    const aggregate = AGGREGATE_HINT.test(`${entityId.replace(/[._]/g, " ")} ${hintText}`);
 
     sources.push({
       entityId,
@@ -199,7 +231,9 @@ export function buildSources(
       entityCategory: entry?.entity_category ?? undefined,
       manual: Boolean(manual),
       aggregate,
-      label: aggregate ? aggregateLabel(String(rawName)) : name,
+      label: aggregate
+        ? interfaceLabel(entityId, hintText, aggregateLabel(String(rawName)))
+        : name,
       confidence: aggregate ? 0.6 : manual ? 1 : 0.9,
     });
     seen.add(entityId);
