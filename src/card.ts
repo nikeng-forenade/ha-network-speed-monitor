@@ -138,6 +138,7 @@ export class NetworkSpeedMonitor extends LitElement {
     if (!config || typeof config !== "object") {
       throw new Error("Invalid configuration for network-speed-monitor");
     }
+    const previous = this._config;
     this._config = { ...DEFAULT_CONFIG, ...config };
     this._sources = undefined;
     this._hold.clear();
@@ -145,10 +146,16 @@ export class NetworkSpeedMonitor extends LitElement {
       staleMs: Math.max(this._staleAfterMs, 60_000),
       maxMbps: 1_000_000,
     });
-    this._unitOverride = undefined;
-    this._compactOverride = undefined;
-    this._limitOverride = undefined;
-    this._refreshOverride = undefined;
+
+    // Home Assistant calls setConfig again whenever the card is re-created.
+    // Keep the display choices the user made unless the config really changed.
+    if (previous?.unit !== this._config.unit) this._unitOverride = undefined;
+    if (previous?.compact !== this._config.compact) this._compactOverride = undefined;
+    if (previous?.ranking_size !== this._config.ranking_size) this._limitOverride = undefined;
+    if (previous?.refresh_interval !== this._config.refresh_interval) {
+      this._refreshOverride = undefined;
+    }
+
     this._filter = "";
     this._clearTimer();
     if (this.isConnected) {
@@ -182,6 +189,7 @@ export class NetworkSpeedMonitor extends LitElement {
 
   public override connectedCallback(): void {
     super.connectedCallback();
+    document.addEventListener("visibilitychange", this._onVisibilityChange);
     if (this._hass && this._config) {
       this._evaluate();
       this._schedule();
@@ -190,6 +198,7 @@ export class NetworkSpeedMonitor extends LitElement {
 
   public override disconnectedCallback(): void {
     super.disconnectedCallback();
+    document.removeEventListener("visibilitychange", this._onVisibilityChange);
     this._clearTimer();
     if (this._sparkTimer !== undefined) {
       window.clearTimeout(this._sparkTimer);
@@ -321,19 +330,27 @@ export class NetworkSpeedMonitor extends LitElement {
     }
   }
 
-  private _schedule(): void {
+  private _schedule(delay?: number): void {
     if (this._paused || !this.isConnected) return;
     if (this._timer !== undefined) return;
     const interval = this._refreshSeconds * 1000;
     const elapsed = Date.now() - this._lastEval;
-    const wait = elapsed >= interval ? 0 : interval - elapsed;
+    const wait = delay ?? (elapsed >= interval ? 0 : interval - elapsed);
     this._timer = window.setTimeout(() => {
       this._timer = undefined;
       if (!this.isConnected || this._paused) return;
       this._evaluate();
-      this._schedule();
+      // Reschedule from now so a slow render cannot shrink the next interval.
+      this._schedule(interval);
     }, wait);
   }
+
+  private _onVisibilityChange = (): void => {
+    if (document.visibilityState !== "visible" || this._paused) return;
+    this._clearTimer();
+    this._evaluate();
+    this._schedule();
+  };
 
   private _maybeLoadSparklines(force = false): void {
     const config = this._config;
