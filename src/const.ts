@@ -34,6 +34,7 @@ export const DEFAULT_CONFIG = {
   aggregates_max: 6,
   stale_after: 300,
   hold_seconds: 60,
+  hide_rx_tx: true,
   warn_threshold: 75,
   critical_threshold: 90,
 };

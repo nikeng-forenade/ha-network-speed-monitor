@@ -34,6 +34,9 @@ const UPLOAD_PATTERN =
 
 const RATE_HINT = /speed|rate|bandwidth|download|upload|throughput|traffic|mbps|kbps|gbps/i;
 
+/** Router and switch sensors that only carry a direction in the entity id. */
+const RX_TX_SUFFIX = /_(rx|tx)$/i;
+
 /** Throughput that is definitely not network traffic. */
 const NON_NETWORK = /\b(disk|storage|hdd|ssd|drive|memory|ram|swap|cpu|gpu|fan|temperature)\b/i;
 
@@ -135,9 +138,19 @@ export function buildSources(
   const states = hass.states ?? {};
   const includeEntities = new Set(config.include_entities ?? []);
   const excludeEntities = new Set(config.exclude_entities ?? []);
+  const excludePatterns = (config.exclude_patterns ?? [])
+    .map((pattern) => {
+      try {
+        return new RegExp(pattern, "i");
+      } catch {
+        return null;
+      }
+    })
+    .filter((pattern): pattern is RegExp => pattern !== null);
   const includeIntegrations = config.include_integrations ?? [];
   const excludeIntegrations = config.exclude_integrations ?? [];
   const overrides = config.name_overrides ?? {};
+  const hideRxTx = config.hide_rx_tx !== false;
 
   const manualByEntity = new Map<string, { pair: ManualPair; direction: Direction }>();
   for (const pair of config.pairs ?? []) {
@@ -152,12 +165,16 @@ export function buildSources(
     if (seen.has(entityId)) continue;
     if (excludeEntities.has(entityId)) continue;
 
+    const manual = manualByEntity.get(entityId);
+    // Plain `_rx`/`_tx` sensors are usually ports; an explicit manual pair wins.
+    if (hideRxTx && !manual && RX_TX_SUFFIX.test(entityId)) continue;
+    if (excludePatterns.some((pattern) => pattern.test(entityId))) continue;
+
     const state = states[entityId];
     const entry = registry[entityId];
     if (!state) continue;
     if (entry?.disabled_by || entry?.hidden_by) continue;
 
-    const manual = manualByEntity.get(entityId);
     if (includeEntities.size > 0 && !includeEntities.has(entityId) && !manual) continue;
 
     const platform = entry?.platform ?? "unknown";

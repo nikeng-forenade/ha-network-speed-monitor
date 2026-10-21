@@ -201,6 +201,8 @@ ignored. The first reading of a counter is always shown as “waiting for the fi
 | `exclude_integrations` | string[] | – | Ignore these integrations. |
 | `include_entities` | string[] | – | Allow-list of sensors (disables automatic discovery). |
 | `exclude_entities` | string[] | – | Sensors to ignore. |
+| `exclude_patterns` | string[] | – | Case-insensitive regexes tested against the entity id, e.g. `["_rx$", "_tx$"]` to drop every RX/TX sensor. |
+| `hide_rx_tx` | boolean | `true` | Ignore sensors whose entity id ends in `_rx`/`_tx` (router and switch ports). Set `false` if your per-device sensors use those names. |
 | `pairs` | list | – | Manual pairing, see below. |
 | `name_overrides` | map | – | `entity_id: Display name`. |
 

@@ -136,7 +136,7 @@ describe("OPNsense style interface sensors", () => {
       }
     );
 
-    const sources = buildSources(portHass, baseConfig);
+    const sources = buildSources(portHass, { ...baseConfig, hide_rx_tx: false });
     const byId = (id: string) => sources.find((source) => source.entityId === id);
 
     expect(byId("sensor.fw_igb0_rx")?.aggregate).toBe(true);
@@ -241,7 +241,8 @@ describe("buildSources", () => {
     expect(ids).not.toContain("sensor.disk_read");
     expect(ids).not.toContain("sensor.hidden_download");
     // `rx` is enough to identify the direction even without a friendly name.
-    expect(sources.find((source) => source.entityId === "sensor.manual_rx")?.direction).toBe(
+    const withRx = buildSources(hass, { ...baseConfig, hide_rx_tx: false });
+    expect(withRx.find((source) => source.entityId === "sensor.manual_rx")?.direction).toBe(
       "download"
     );
   });
@@ -280,6 +281,55 @@ describe("buildSources", () => {
       exclude_entities: ["sensor.pc_download"],
     });
     expect(denyList.some((source) => source.entityId === "sensor.pc_download")).toBe(false);
+  });
+
+  it("drops entities matching exclude_patterns", () => {
+    const filtered = buildSources(hass, {
+      ...baseConfig,
+      exclude_patterns: ["_rx", "_tx"],
+    });
+    expect(filtered.some((source) => source.entityId === "sensor.nas_rx_bytes")).toBe(false);
+    expect(filtered.some((source) => source.entityId === "sensor.pc_download")).toBe(true);
+  });
+
+  it("ignores invalid exclude patterns instead of failing", () => {
+    const filtered = buildSources(hass, {
+      ...baseConfig,
+      exclude_patterns: ["[unclosed", "_upload$"],
+    });
+    expect(filtered.some((source) => source.entityId === "sensor.pc_upload")).toBe(false);
+  });
+
+  it("hides plain rx/tx sensors by default", () => {
+    const rxHass = makeHass(
+      {
+        "sensor.router_wan_rx": {
+          state: "33",
+          attributes: { unit_of_measurement: "Mbit/s", device_class: "data_rate" },
+        },
+        "sensor.router_wan_tx": {
+          state: "12",
+          attributes: { unit_of_measurement: "Mbit/s", device_class: "data_rate" },
+        },
+        "sensor.nas_download": {
+          state: "80",
+          attributes: { unit_of_measurement: "Mbit/s", device_class: "data_rate" },
+        },
+      },
+      {
+        "sensor.router_wan_rx": { platform: "snmp", device_id: "r" },
+        "sensor.router_wan_tx": { platform: "snmp", device_id: "r" },
+        "sensor.nas_download": { platform: "unifi", device_id: "nas" },
+      }
+    );
+
+    const hidden = buildSources(rxHass, baseConfig).map((source) => source.entityId);
+    expect(hidden).toEqual(["sensor.nas_download"]);
+
+    const kept = buildSources(rxHass, { ...baseConfig, hide_rx_tx: false }).map(
+      (source) => source.entityId
+    );
+    expect(kept).toContain("sensor.router_wan_rx");
   });
 
   it("supports manual pairs, name overrides and icons", () => {

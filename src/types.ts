@@ -65,6 +65,8 @@ export interface NetworkSpeedMonitorConfig {
   exclude_integrations?: string[];
   include_entities?: string[];
   exclude_entities?: string[];
+  exclude_patterns?: string[];
+  hide_rx_tx?: boolean;
   pairs?: ManualPair[];
   name_overrides?: Record<string, string>;
 }
