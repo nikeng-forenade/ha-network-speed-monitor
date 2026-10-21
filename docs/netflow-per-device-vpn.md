@@ -82,6 +82,20 @@ Make sure **both** the LAN and the VPN interface are monitored:
 ### Step 2 – find the ntopng interface id
 
 ```sh
+python netflow_to_mqtt.py --ntopng-url http://opnsense.local:3000 \
+  --ntopng-user admin --ntopng-password secret --list-interfaces
+```
+
+```
+ ifid  name           description
+    1  igb0           WAN
+    2  igb1           LAN
+    7  tun0           NordVPN
+```
+
+The same via REST:
+
+```sh
 curl -u admin:admin "http://opnsense.local:3000/lua/rest/v2/get/interface/list.lua"
 ```
 
@@ -117,6 +131,27 @@ otherwise):
 
 Run it as a systemd service, Docker container, or on any always-on box. It publishes retained values,
 so Home Assistant survives restarts.
+
+Ready-made unit files:
+
+- [`docs/examples/netflow-to-mqtt.service`](examples/netflow-to-mqtt.service)
+- [`docs/examples/netflow-to-mqtt.env.example`](examples/netflow-to-mqtt.env.example) → copy to
+  `/etc/netflow-to-mqtt.env` and `chmod 600`
+
+```sh
+sudo install -d /opt/netflow_to_mqtt
+sudo cp docs/examples/netflow_to_mqtt.py /opt/netflow_to_mqtt/
+sudo useradd --system --no-create-home netflow || true
+sudo cp docs/examples/netflow-to-mqtt.env.example /etc/netflow-to-mqtt.env
+sudo nano /etc/netflow-to-mqtt.env          # URL, ifid, credentials
+sudo cp docs/examples/netflow-to-mqtt.service /etc/systemd/system/
+sudo systemctl enable --now netflow-to-mqtt
+journalctl -u netflow-to-mqtt -f
+```
+
+All connection settings have environment-variable equivalents (`NTOPNG_URL`, `NTOPNG_USER`,
+`NTOPNG_PASSWORD`, `NTOPNG_IFID`, `POLL_INTERVAL`, `NAMES_FILE`, `MQTT_HOST`, `MQTT_PORT`,
+`MQTT_USER`, `MQTT_PASSWORD`), so no secrets end up on the command line.
 
 ### Step 4 – use it in the card
 

@@ -1,0 +1,21 @@
+[Unit]
+Description=ntopng to MQTT bridge for Network Speed Monitor
+Documentation=https://github.com/nikeng-forenade/ha-network-speed-monitor/blob/main/docs/netflow-per-device-vpn.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=netflow
+Group=netflow
+EnvironmentFile=/etc/netflow-to-mqtt.env
+ExecStart=/usr/bin/python3 /opt/netflow_to_mqtt/netflow_to_mqtt.py
+Restart=always
+RestartSec=10
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target
