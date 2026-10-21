@@ -571,7 +571,10 @@ export class NetworkSpeedMonitor extends LitElement {
     const config = this._configOrDefault;
     if (config.aggregates === "off" || config.aggregates === "inline") return nothing;
     const limit = Math.max(0, Number(config.aggregates_max ?? DEFAULT_CONFIG.aggregates_max));
-    const groups = (this._view?.aggregates ?? []).slice(0, limit);
+    const include = (config.aggregates_include ?? []).map((label) => label.toLowerCase());
+    const groups = (this._view?.aggregates ?? [])
+      .filter((group) => include.length === 0 || include.includes(group.label.toLowerCase()))
+      .slice(0, limit);
     if (groups.length === 0) return nothing;
     return html`<div class="interfaces">${groups.map((group) => this._renderAggregate(group))}</div>`;
   }
@@ -588,7 +591,9 @@ export class NetworkSpeedMonitor extends LitElement {
         <header class="panel-head">
           <div class="panel-title">
             <div class="badge"><ha-icon .icon=${icon}></ha-icon></div>
-            <h2>${title}</h2>
+            <h2 title="Per-device speed as reported by each device's own sensor. WAN and VPN totals are shown in the interface row.">
+              ${title}
+            </h2>
           </div>
           <span class="unit">${unit}</span>
         </header>
@@ -637,8 +642,8 @@ export class NetworkSpeedMonitor extends LitElement {
 
     return html`
       <footer class="totals ${single ? "single" : ""}">
-        ${showDownload
-          ? html`<div class="total download">
+          ${showDownload
+          ? html`<div class="total download" title="Sum of the download values of the devices shown above. This is not the WAN total - the WAN and VPN interfaces are listed separately.">
               <ha-icon class="glyph" icon="mdi:download"></ha-icon>
               <div>
                 <div class="label">Total Download (Top ${downloadCount})</div>
@@ -647,7 +652,7 @@ export class NetworkSpeedMonitor extends LitElement {
             </div>`
           : nothing}
         ${showUpload
-          ? html`<div class="total upload">
+          ? html`<div class="total upload" title="Sum of the upload values of the devices shown above. This is not the WAN total - the WAN and VPN interfaces are listed separately.">
               <ha-icon class="glyph" icon="mdi:upload"></ha-icon>
               <div>
                 <div class="label">Total Upload (Top ${uploadCount})</div>

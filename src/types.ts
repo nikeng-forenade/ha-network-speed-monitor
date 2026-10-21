@@ -52,6 +52,7 @@ export interface NetworkSpeedMonitorConfig {
   scope?: Scope;
   aggregates?: AggregateMode;
   aggregates_max?: number;
+  aggregates_include?: string[];
   max_speed?: number;
   warn_threshold?: number;
   critical_threshold?: number;
