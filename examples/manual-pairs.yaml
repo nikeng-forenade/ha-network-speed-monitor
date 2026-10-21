@@ -1,0 +1,18 @@
+type: custom:network-speed-monitor
+title: Network Speed Monitor
+subtitle: Top 10 devices by download and upload speed
+pairs:
+  - name: NAS Server
+    download: sensor.nas_wan_download
+    upload: sensor.nas_wan_upload
+    icon: mdi:server
+  - name: Living Room TV
+    download: sensor.tv_rx
+    upload: sensor.tv_tx
+    icon: mdi:television
+name_overrides:
+  sensor.desktop_pc_download: Desktop-PC
+  sensor.desktop_pc_upload: Desktop-PC
+include_integrations:
+  - unifi
+  - snmp

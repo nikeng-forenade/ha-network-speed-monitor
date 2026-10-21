@@ -1,0 +1,6 @@
+type: custom:network-speed-monitor
+title: Network Speed Monitor
+subtitle: Top 10 devices by download and upload speed
+ranking_size: 10
+refresh_interval: 5
+unit: Mbps

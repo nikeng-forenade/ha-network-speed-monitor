@@ -1,0 +1,7 @@
+{
+  "name": "Network Speed Monitor",
+  "filename": "network-speed-monitor.js",
+  "content_in_root": false,
+  "render_readme": true,
+  "hide_default_branch": false
+}

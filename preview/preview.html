@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Network Speed Monitor – preview</title>
+    <link rel="stylesheet" href="preview.css" />
+  </head>
+  <body>
+    <div class="stage">
+      <network-speed-monitor id="card"></network-speed-monitor>
+    </div>
+
+    <script src="icons.js"></script>
+    <script>
+      class HaCard extends HTMLElement {}
+      class HaIcon extends HTMLElement {
+        static get observedAttributes() {
+          return ["icon"];
+        }
+        set icon(value) {
+          this.setAttribute("icon", value);
+        }
+        get icon() {
+          return this.getAttribute("icon");
+        }
+        connectedCallback() {
+          this._schedule();
+        }
+        attributeChangedCallback() {
+          this._schedule();
+        }
+        // Render on a microtask: mutating the DOM synchronously during an
+        // attributeChangedCallback fired by cloning would break the caller.
+        _schedule() {
+          if (this._pending) return;
+          this._pending = true;
+          queueMicrotask(() => {
+            this._pending = false;
+            this._render();
+          });
+        }
+        _render() {
+          if (!this._styled) {
+            this._styled = true;
+            this.style.display = "inline-flex";
+            this.style.width = "var(--mdc-icon-size, 24px)";
+            this.style.height = "var(--mdc-icon-size, 24px)";
+            this.style.lineHeight = "0";
+            this.style.flex = "0 0 auto";
+          }
+          const name = (this.getAttribute("icon") || "").replace("mdi:", "");
+          const svg = (window.MDI_ICONS || {})[name];
+          this.innerHTML = svg
+            ? svg.replace("<svg", '<svg style="width:100%;height:100%;fill:currentColor"')
+            : "";
+        }
+      }
+      customElements.define("ha-card", HaCard);
+      customElements.define("ha-icon", HaIcon);
+    </script>
+
+    <script type="module">
+      import "../dist/network-speed-monitor.js";
+
+      const rows = [
+        // name, device, download Mbps, upload Mbps, download age s, upload age s
+        ["Desktop-PC", "dev_pc", 845, 125, 2, 3],
+        ["NAS Server", "dev_nas", 412, 320, 4, 2],
+        ["Living Room TV", "dev_tv", 186, 4, 3, 5],
+        ["Laptop", "dev_laptop", 92, 48, 1, 1],
+        ["Camera NVR", "dev_nvr", 54, 16, 5, 4],
+        ["iPhone", "dev_phone", 38, 3, 4, 6],
+        ["Smart Home Hub", "dev_hub", 28, 1, 6, 7],
+        ["PlayStation", "dev_ps", 26, 2, 3, 4],
+        ["iPad", "dev_ipad", 18, 1, 7, 6],
+        ["Printer", "dev_printer", 12, 0, 5, 8],
+        ["Cloud Backup", "dev_cloud", 0, 2, 9, 5],
+      ];
+
+      const now = Date.now();
+      const states = {};
+      const entities = {};
+      const devices = {};
+
+      for (const [name, device, down, up, downAge, upAge] of rows) {
+        devices[device] = { id: device, name };
+        const slug = device.replace("dev_", "");
+        for (const [direction, value, age] of [
+          ["download", down, downAge],
+          ["upload", up, upAge],
+        ]) {
+          const entityId = `sensor.${slug}_${direction}`;
+          states[entityId] = {
+            entity_id: entityId,
+            state: String(value),
+            attributes: {
+              unit_of_measurement: "Mbit/s",
+              device_class: "data_rate",
+              friendly_name: `${name} ${direction === "download" ? "Download" : "Upload"} Speed`,
+            },
+            last_changed: new Date(now - age * 1000).toISOString(),
+            last_updated: new Date(now - age * 1000).toISOString(),
+          };
+          entities[entityId] = { entity_id: entityId, platform: "unifi", device_id: device };
+        }
+      }
+
+      const dark = new URLSearchParams(location.search).has("dark");
+      document.body.classList.toggle("dark", dark);
+
+      const hass = {
+        states,
+        entities,
+        devices,
+        areas: {},
+        themes: { darkMode: dark },
+        callWS: async () => ({}),
+      };
+
+      const card = document.getElementById("card");
+      card.setConfig({
+        type: "custom:network-speed-monitor",
+        title: "Network Speed Monitor",
+        subtitle: "Top 10 devices by download and upload speed",
+        ranking_size: 10,
+        refresh_interval: 5,
+      });
+      card.hass = hass;
+    </script>
+  </body>
+</html>

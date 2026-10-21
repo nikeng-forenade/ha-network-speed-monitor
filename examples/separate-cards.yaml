@@ -1,0 +1,17 @@
+# Two cards, one per direction. Useful when you want the two rankings in
+# different dashboard sections.
+type: vertical-stack
+cards:
+  - type: custom:network-speed-monitor
+    title: Top 10 Download
+    subtitle: Devices ranked by current download speed
+    show: download
+    ranking_size: 10
+    download_color: "#1a73e8"
+
+  - type: custom:network-speed-monitor
+    title: Top 10 Upload
+    subtitle: Devices ranked by current upload speed
+    show: upload
+    ranking_size: 10
+    upload_color: "#16a34a"

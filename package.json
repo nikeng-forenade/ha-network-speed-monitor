@@ -1,0 +1,25 @@
+{
+  "name": "ha-network-speed-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Home Assistant Lovelace card that ranks the Top 10 devices by live download and upload speed.",
+  "type": "module",
+  "main": "dist/network-speed-monitor.js",
+  "module": "dist/network-speed-monitor.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "npm run check && node scripts/build.mjs",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "watch": "node scripts/build.mjs --watch"
+  },
+  "dependencies": {
+    "lit": "^3.2.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.0"
+  }
+}

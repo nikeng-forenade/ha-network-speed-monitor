@@ -1,0 +1,11 @@
+type: custom:network-speed-monitor
+title: Network Speed Monitor
+subtitle: Live Top 5
+ranking_size: 5
+compact: true
+show_timestamps: false
+refresh_interval: 2
+max_speed: 1000
+warn_threshold: 70
+critical_threshold: 90
+scope: device

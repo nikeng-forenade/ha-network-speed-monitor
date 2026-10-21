@@ -1,0 +1,62 @@
+:root {
+  --primary-text-color: #1c2430;
+  --secondary-text-color: #5d6b7d;
+  --card-background-color: #ffffff;
+  --ha-card-background: #ffffff;
+  --ha-card-border-radius: 14px;
+  --divider-color: #e6eaf0;
+  --primary-color: #1a73e8;
+  color-scheme: light;
+}
+
+body.dark {
+  --primary-text-color: #e6eaf2;
+  --secondary-text-color: #93a0b4;
+  --card-background-color: #151a22;
+  --ha-card-background: #151a22;
+  --divider-color: #2a3240;
+  --primary-color: #3b9dff;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 2.5rem 1.25rem;
+  background: #f1f4f9;
+  font-family:
+    "Segoe UI",
+    Roboto,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  color: var(--primary-text-color);
+}
+
+body.dark {
+  background: #0b0e13;
+}
+
+ha-card {
+  display: block;
+  background: var(--ha-card-background);
+  border-radius: var(--ha-card-border-radius);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+body.dark ha-card {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.stage {
+  max-width: 1120px;
+  margin: 0 auto;
+}
