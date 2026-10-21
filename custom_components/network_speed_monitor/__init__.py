@@ -20,6 +20,30 @@ _LOGGER = logging.getLogger(__name__)
 DATA_FRONTEND_REGISTERED = f"{DOMAIN}_frontend_registered"
 
 
+async def _async_ensure_resource(hass: HomeAssistant, url: str) -> None:
+    """Ensure a Lovelace resource exists so the card is always loaded.
+
+    ``add_extra_js_url`` covers the module URL, but dashboard cards are created
+    through the Lovelace resource list. Keeping both in sync removes the race
+    where a card renders before its element is defined.
+    """
+    try:
+        lovelace = hass.data.get("lovelace")
+        resources = lovelace.get("resources") if isinstance(lovelace, dict) else None
+        if resources is None:
+            return
+
+        base = url.split("?")[0]
+        for item in resources.async_items():
+            if str(item.get("url", "")).split("?")[0] == base:
+                return
+
+        await resources.async_create_item({"res_type": "module", "url": url})
+        _LOGGER.info("Added Lovelace resource %s", url)
+    except Exception:  # noqa: BLE001 - a resource problem must not break setup
+        _LOGGER.exception("Could not add the Lovelace resource for %s", url)
+
+
 async def _async_register_frontend(hass: HomeAssistant) -> None:
     """Serve the card and add it to the frontend module URLs (idempotent)."""
     if hass.data.get(DATA_FRONTEND_REGISTERED):
@@ -55,6 +79,7 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         hass.data.setdefault("frontend_extra_module_url", set()).add(url)
 
     hass.data[DATA_FRONTEND_REGISTERED] = True
+    await _async_ensure_resource(hass, url)
     _LOGGER.info("Network Speed Monitor card registered at %s", url)
 
 
