@@ -830,7 +830,9 @@ export const CARD_INFO = {
   type: `custom:${CARD_TAG}`,
   name: "Network Speed Monitor",
   description: "Top 10 live download and upload rankings for your network devices.",
-  preview: true,
+  // No live preview: Home Assistant renders it inside a scaled container where
+  // the element can stay in its loading state. The card itself is unaffected.
+  preview: false,
   documentationURL: "https://github.com/nikeng-forenade/ha-network-speed-monitor",
   version: CARD_VERSION,
 };
